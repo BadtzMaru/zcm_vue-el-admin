@@ -1,24 +1,17 @@
-# vue-el-admin
+# 安装项目
 
-## Project setup
-```
-yarn install
-```
+`npm install -g @vue/cli`
+`yarn global add @vue/cli`
 
-### Compiles and hot-reloads for development
-```
-yarn serve
-```
+# 配置 vue.config.js (关闭 eslint)
 
-### Compiles and minifies for production
-```
-yarn build
-```
+1. 根目录创建 vue.config.js
+2. 添加`module.exports={lintOnSave: false}`
 
-### Lints and fixes files
-```
-yarn lint
-```
+# vue 图形化管理界面
 
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+`vue ui`
+
+# 安装 element-ui
+
+`vue add element`
