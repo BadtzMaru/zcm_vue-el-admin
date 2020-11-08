@@ -1,0 +1,112 @@
+{
+	"eRowCol": {
+		"body": [
+			"<el-row :gutter=\"20\">",
+			"\t<el-col :span=\"12\">$1</el-col>",
+			"\t<el-col :span=\"12\">$1</el-col>",
+			"</el-row>"
+		],
+		"prefix": "erowcol"
+	},
+	"eCard": {
+		"body": [
+			"<el-card class=\"box-card\">",
+			"\t<div slot=\"header\" class=\"clearfix\">",
+			"\t\t<span>卡片名称</span>",
+			"\t\t<el-button style=\"float: right; padding: 3px 0\" type=\"text\">操作按钮</el-button>",
+			"\t</div>",
+			"\t<div class=\"text item\">$1</div>",
+			"</el-card>"
+		],
+		"prefix": "ecard"
+	},
+	"eInput": {
+		"body": ["<el-input v-model=\"$1\"></el-input>"],
+		"prefix": "einput"
+	},
+	"eSelect": {
+		"body": [
+			"<el-select v-model=\"form.region\" placeholder=\"请选择活动区域\">",
+			"\t<el-option label=\"区域一\" value=\"shanghai\"></el-option>",
+			"\t<el-option label=\"区域二\" value=\"beijing\"></el-option>",
+			"</el-select>"
+		],
+		"prefix": "eselect"
+	},
+	"eDatePicker": {
+		"body": [
+			"<el-date-picker type=\"date\" placeholder=\"选择日期\" v-model=\"form.date1\" style=\"width: 100%;\"></el-date-picker>"
+		],
+		"prefix": "edatepicker"
+	},
+	"eSwitch": {
+		"body": ["<el-switch v-model=\"form.delivery\"></el-switch>"],
+		"prefix": "eswitch"
+	},
+	"eCheckboxGroup": {
+		"body": [
+			"<el-checkbox-group v-model=\"form.type\">",
+			"\t<el-checkbox label=\"美食/餐厅线上活动\" name=\"type\"></el-checkbox>",
+			"\t<el-checkbox label=\"地推活动\" name=\"type\"></el-checkbox>",
+			"</el-checkbox-group>"
+		],
+		"prefix": "echeckboxgroup"
+	},
+	"eRadioGroup": {
+		"body": [
+			"<el-radio-group v-model=\"form.resource\">",
+			"\t<el-radio label=\"线上品牌商赞助\"></el-radio>",
+			"\t<el-radio label=\"线下场地免费\"></el-radio>",
+			"</el-radio-group>"
+		],
+		"prefix": "eradiogroup"
+	},
+	"eButton": {
+		"body": [
+			"<el-button type=\"primary\" @click=\"onSubmit\">立即创建</el-button>"
+		],
+		"prefix": "ebutton"
+	},
+	"eForm": {
+		"body": [
+			"<el-form ref=\"form\" :model=\"form\" label-width=\"80px\">",
+			"\t<el-form-item label=\"label\">",
+			"\t\t$1",
+			"\t</el-form-item>",
+			"</el-form>"
+		],
+		"prefix": "efrom"
+	},
+	"eFormItem": {
+		"body": ["<el-form-item label=\"label\">", "\t$1", "</el-form-item>"],
+		"prefix": "efromitem"
+	},
+	"eDialog": {
+		"body": [
+			"<el-dialog title=\"标题\" :visible.sync=\"createModel\">",
+			"\t$1",
+			"\t<div slot=\"footer\" class=\"dialog-footer\">",
+			"\t\t<el-button @click=\"createModel = false\">取 消</el-button>",
+			"\t\t<el-button type=\"primary\" @click=\"createModel = false\">确 定</el-button>",
+			"\t</div>",
+			"</el-dialog>"
+		],
+		"prefix": "edialog"
+	},
+	"eLink": {
+		"body": ["<el-link type=\"primary\" href=\"#\">$1</el-link>"],
+		"prefix": "elink"
+	},
+
+	"eRow": {
+		"body": [
+			"<el-row :gutter=\"20\">",
+			"\t<el-col :span=\"6\">$1</el-col>",
+			"\t<el-col :span=\"6\">$2</el-col>",
+			"\t<el-col :span=\"6\">$3</el-col>",
+			"\t<el-col :span=\"6\">$4</el-col>",
+			"</el-row>"
+		],
+		"prefix": "erow"
+	}
+}

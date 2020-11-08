@@ -1,10 +1,12 @@
 <template>
 	<div id="app">
-		<el-radio-group v-model="radio" @change="change" size="small">
-			<el-radio :label="3" border>备选项3</el-radio>
-			<el-radio :label="6" border>备选项6</el-radio>
-			<el-radio :label="9" border>备选项9</el-radio>
-		</el-radio-group>
+		<div class="container">
+			<div class="card mt-5 border-primary">
+				<div class="card-header bg-primary text-white">头部</div>
+				<div class="card-body">内容</div>
+				<div class="card-footer bg-primary text-white">底部</div>
+			</div>
+		</div>
 	</div>
 </template>
 
@@ -13,9 +15,7 @@ export default {
 	name: 'app',
 	components: {},
 	data() {
-		return {
-			radio: 3,
-		};
+		return {};
 	},
 	methods: {
 		change(e) {
