@@ -2,6 +2,7 @@
 
 `npm install -g @vue/cli`
 `yarn global add @vue/cli`
+`vue create 项目名称`
 
 # 配置 vue.config.js (关闭 eslint)
 
@@ -15,3 +16,15 @@
 # 安装 element-ui
 
 `vue add element`
+
+# 安装 vue-router 和使用
+
+1. `npm install vue-router --save`
+2. src 下创建 router.js
+   `import Vue from 'vue';`
+   `import Router from 'vue-router';`
+   `Vue.use(Router);`
+   `export default new Router({ routes: [] });`
+3. 在 main.js 中引入 router.js
+   `import router from './router.js';`
+   `new Vue({router,render:h=>h(App)}).$mount('#app');`
