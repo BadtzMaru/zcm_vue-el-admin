@@ -162,6 +162,7 @@ export default {
 			this.bran = arr;
 		},
 		handleSelect(key) {
+			if (this.navBar.active === key) return;
 			if (key === '100-1') {
 				return console.log('修改资料');
 			}
