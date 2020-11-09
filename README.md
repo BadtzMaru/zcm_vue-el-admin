@@ -28,3 +28,9 @@
 3. 在 main.js 中引入 router.js
    `import router from './router.js';`
    `new Vue({router,render:h=>h(App)}).$mount('#app');`
+
+# 防止点击重复路由报错
+
+在 router.js 中添加
+`const originalPush = Router.prototype.push;`
+`Router.prototype.push = function push(location) {return originalPush.call(this, location).catch((err) => err);};`
