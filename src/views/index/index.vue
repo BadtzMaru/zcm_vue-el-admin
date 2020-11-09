@@ -26,7 +26,7 @@
 				class="d-flex flex-column"
 			>
 				<el-card
-					class="box-card mb-auto"
+					class="box-card"
 					shadow="never"
 					v-for="(tip, ti) in tips"
 					:key="ti"
@@ -71,6 +71,35 @@
 				</el-card>
 			</el-col>
 		</el-row>
+		<!-- 销售情况统计 | 单品销售排名 -->
+		<el-row :gutter="20" class="my-3">
+			<el-col :span="12">
+				<el-card class="box-card">
+					<div slot="header" class="clearfix">
+						<span>卡片名称</span>
+						<el-button
+							style="float: right; padding: 3px 0"
+							type="text"
+							>操作按钮</el-button
+						>
+					</div>
+					<div class="text item"></div>
+				</el-card>
+			</el-col>
+			<el-col :span="12">
+				<el-card class="box-card">
+					<div slot="header" class="clearfix">
+						<span>卡片名称</span>
+						<el-button
+							style="float: right; padding: 3px 0"
+							type="text"
+							>操作按钮</el-button
+						>
+					</div>
+					<div class="text item"></div>
+				</el-card>
+			</el-col>
+		</el-row>
 	</div>
 </template>
 
@@ -111,21 +140,21 @@ export default {
 					desc: '需要关注的店铺信息及待处理事项',
 					list: [
 						{ name: '出售中', value: '64' },
-						{ name: '出售中', value: '64' },
-						{ name: '出售中', value: '64' },
-						{ name: '出售中', value: '64' },
+						{ name: '待回复', value: '10' },
+						{ name: '库存预警', value: '0' },
+						{ name: '仓库中', value: '3' },
 					],
 				},
 				{
-					title: '店铺及商品提示',
-					desc: '需要关注的店铺信息及待处理事项',
+					title: '交易提示',
+					desc: '需要立即处理的交易订单',
 					list: [
-						{ name: '出售中', value: '64' },
-						{ name: '出售中', value: '64' },
-						{ name: '出售中', value: '64' },
-						{ name: '出售中', value: '64' },
-						{ name: '出售中', value: '64' },
-						{ name: '出售中', value: '64' },
+						{ name: '待付款', value: '0' },
+						{ name: '代发货', value: '10' },
+						{ name: '已发货', value: '0' },
+						{ name: '已收货', value: '3' },
+						{ name: '退款中', value: '3' },
+						{ name: '待售后', value: '3' },
 					],
 				},
 			],

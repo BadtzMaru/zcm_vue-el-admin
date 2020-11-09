@@ -55,7 +55,7 @@
 					</el-menu>
 				</el-aside>
 				<!-- 主布局 -->
-				<el-main class="bg-light">
+				<el-main class="bg-light" style="margin-bottom:60px;">
 					<!-- 面包屑导航 -->
 					<div
 						v-if="bran.length"
