@@ -38,3 +38,7 @@
 # 安装 ECharts
 
 `npm install echarts`
+
+# 修改 data 中的数组的方法
+
+`@click.stop.native="事件名"`

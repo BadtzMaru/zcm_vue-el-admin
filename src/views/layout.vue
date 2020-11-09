@@ -55,7 +55,10 @@
 					</el-menu>
 				</el-aside>
 				<!-- 主布局 -->
-				<el-main class="bg-light" style="margin-bottom:60px;">
+				<el-main
+					class="bg-light"
+					style="padding-bottom:60px;position:relative"
+				>
 					<!-- 面包屑导航 -->
 					<div
 						v-if="bran.length"
@@ -159,6 +162,12 @@ export default {
 			this.bran = arr;
 		},
 		handleSelect(key) {
+			if (key === '100-1') {
+				return console.log('修改资料');
+			}
+			if (key === '100-2') {
+				return console.log('退出登录');
+			}
 			this.navBar.active = key;
 			// 默认跳转到当前激活
 			this.slideMenuActive = '0';

@@ -74,7 +74,7 @@
 		<!-- 销售情况统计 | 单品销售排名 -->
 		<el-row :gutter="20" class="my-3">
 			<el-col :span="12">
-				<el-card class="box-card">
+				<el-card class="box-card" shadow="never">
 					<div slot="header" class="clearfix">
 						<span>卡片名称</span>
 						<el-button
@@ -83,20 +83,53 @@
 							>操作按钮</el-button
 						>
 					</div>
-					<div class="text item"></div>
+					<div class="media align-items-center border">
+						<span class="py-4 px-3 bg-light border-right"
+							>昨日销量</span
+						>
+						<span class="media-body">
+							<div class="border-bottom pl-3 pb-1 mb-1">
+								<span>订单量(件)</span> 12
+							</div>
+							<div class="pl-3"><span>订单量(件)</span> 12</div>
+						</span>
+					</div>
+					<div class="media align-items-center border mt-3">
+						<span class="py-4 px-3 bg-light border-right"
+							>昨日销量</span
+						>
+						<span class="media-body">
+							<div class="border-bottom pl-3 pb-1 mb-1">
+								<span>订单量(件)</span> 12
+							</div>
+							<div class="pl-3"><span>订单量(件)</span> 12</div>
+						</span>
+					</div>
 				</el-card>
 			</el-col>
 			<el-col :span="12">
-				<el-card class="box-card">
+				<el-card class="box-card" shadow="never">
 					<div slot="header" class="clearfix">
-						<span>卡片名称</span>
+						<span>单品销售排名</span>
 						<el-button
 							style="float: right; padding: 3px 0"
 							type="text"
 							>操作按钮</el-button
 						>
 					</div>
-					<div class="text item"></div>
+					<el-table
+						:data="tableData"
+						height="164"
+						border
+						style="width: 100%"
+					>
+						<el-table-column type="index" label="#" width="50">
+						</el-table-column>
+						<el-table-column prop="name" label="商品信息">
+						</el-table-column>
+						<el-table-column prop="num" label="销量" width="50">
+						</el-table-column>
+					</el-table>
 				</el-card>
 			</el-col>
 		</el-row>
@@ -108,6 +141,15 @@ import echarts from 'echarts';
 export default {
 	data() {
 		return {
+			tableData: [
+				{ name: '小天鹅', num: '9' },
+				{ name: '小天鹅', num: '9' },
+				{ name: '小天鹅', num: '9' },
+				{ name: '小天鹅', num: '9' },
+				{ name: '小天鹅', num: '9' },
+				{ name: '小天鹅', num: '9' },
+				{ name: '小天鹅', num: '9' },
+			],
 			counts: [
 				{
 					icon: 'el-icon-user-solid',

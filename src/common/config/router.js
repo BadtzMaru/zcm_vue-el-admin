@@ -19,6 +19,10 @@ let routes = [
 				meta: { title: '商品列表' },
 				component: 'shop/goods/list',
 			},
+			{
+				meta: { title: '相册管理' },
+				component: 'image/index',
+			},
 		],
 	},
 	{
