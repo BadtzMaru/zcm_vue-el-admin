@@ -1,3 +1,9 @@
+/**
+ * 规则：
+ * 一、例如：index/index，shop/index以index结尾的，path和name默认去除index
+ * 二、例如：shop/list，默认生成name为shop_list（如果结尾为index，例如shop/index则是shop）
+ * 三、填写后不会自动生成
+ * **/
 let routes = [
 	{
 		path: '/',
