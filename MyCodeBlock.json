@@ -97,7 +97,6 @@
 		"body": ["<el-link type=\"primary\" href=\"#\">$1</el-link>"],
 		"prefix": "elink"
 	},
-
 	"eRow": {
 		"body": [
 			"<el-row :gutter=\"20\">",
