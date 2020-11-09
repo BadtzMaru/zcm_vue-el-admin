@@ -162,7 +162,6 @@ export default {
 			this.bran = arr;
 		},
 		handleSelect(key) {
-			if (this.navBar.active === key) return;
 			if (key === '100-1') {
 				return console.log('修改资料');
 			}
@@ -172,6 +171,11 @@ export default {
 			this.navBar.active = key;
 			// 默认跳转到当前激活
 			this.slideMenuActive = '0';
+			if (
+				this.$route.name ===
+				this.slideMenus[this.slideMenuActive].pathname
+			)
+				return;
 			if (this.slideMenus.length > 0) {
 				this.$router.push({
 					name: this.slideMenus[this.slideMenuActive].pathname,
