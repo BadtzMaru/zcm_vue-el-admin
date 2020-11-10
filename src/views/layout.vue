@@ -184,6 +184,7 @@ export default {
 		},
 		slideSelect(key) {
 			this.slideMenuActive = key;
+			if (this.$route.name === this.slideMenus[key].pathname) return;
 			// 跳转到指定页面
 			this.$router.push({ name: this.slideMenus[key].pathname });
 		},

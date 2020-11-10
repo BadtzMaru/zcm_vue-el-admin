@@ -15,9 +15,15 @@
 					@search="searchEvent"
 				>
 					<template #left>
-						<el-button type="success" size="mini"
-							>发布商品</el-button
+						<router-link
+							:to="{ name: 'shop_goods_create' }"
+							class="mr-2"
 						>
+							<el-button type="success" size="mini"
+								>发布商品</el-button
+							>
+						</router-link>
+
 						<el-button type="warning" size="mini"
 							>恢复商品</el-button
 						>
