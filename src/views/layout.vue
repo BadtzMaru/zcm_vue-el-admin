@@ -173,7 +173,7 @@ export default {
 			this.slideMenuActive = '0';
 			if (
 				this.$route.name ===
-				this.slideMenus[this.slideMenuActive].pathname
+				this.slideMenus[this.slideMenuActive]?.pathname
 			)
 				return;
 			if (this.slideMenus.length > 0) {
