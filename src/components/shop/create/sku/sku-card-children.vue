@@ -6,7 +6,7 @@
 			<!-- 颜色选择器 -->
 			<el-color-picker v-if="type === 1" size="mini"></el-color-picker>
 			<!-- 图片选择 -->
-			<span v-else class="btn btn-light border">
+			<span v-else class="btn btn-light border" @click="chooseImage">
 				<i class="el-icon-plus"></i>
 			</span>
 		</div>
@@ -30,6 +30,7 @@
 <script>
 import { mapMutations } from 'vuex';
 export default {
+	inject: ['app'],
 	props: {
 		type: {
 			type: Number,
@@ -51,6 +52,10 @@ export default {
 				key,
 				value,
 			});
+		},
+		// 选择图片
+		chooseImage() {
+			this.app.show();
 		},
 	},
 };

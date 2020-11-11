@@ -50,3 +50,8 @@
 # 拖拽插件
 
 `npm install awe-dnd --save`
+
+# 依赖注入
+
+1. `provide() {return {app:this}}`
+2. `inject: ['app']`

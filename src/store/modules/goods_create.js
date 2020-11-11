@@ -52,9 +52,14 @@ export default {
 		],
 	},
 	getters: {
+		skuLabels(state) {
+			return state.sku_card.filter((v) => {
+				return v.list.length > 0;
+			});
+		},
 		// 获取表头
-		tableThs(state) {
-			let length = state.sku_card.length;
+		tableThs(state, getters) {
+			let length = getters.skuLabels.length;
 			state.ths[0].colspan = length;
 			state.ths[0].rowspan = length > 0 ? 1 : 2;
 			return state.ths;
@@ -76,7 +81,21 @@ export default {
 				return [];
 			}
 			let arr = $Util.cartesianProductOf(...sku_list);
-			return arr;
+			return arr.map((v) => {
+				let obj = {
+					skus: [],
+					image: '', // sku图片
+					pprice: 0, // 销售价
+					oprice: 0, // 市场价
+					cprice: 0, // 成本价
+					stock: 0,
+					volume: 0,
+					weight: 0,
+					code: '',
+				};
+				obj.skus = v;
+				return obj;
+			});
 		},
 	},
 	mutations: {
