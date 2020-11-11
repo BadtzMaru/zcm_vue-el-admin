@@ -59,3 +59,12 @@
    `this.app.show((res)=>{console.log(res)})`
 4. 依赖的组件中
    `show(callback){ callback('hello')}`
+
+# tinymce 富文本编辑器
+
+1. `npm install tinymce --save`
+2. `npm install @tinymce/tinymce-vue --save`
+
+# vue-quill-editor 富文本编辑器
+
+`npm install vue-quill-editor`
