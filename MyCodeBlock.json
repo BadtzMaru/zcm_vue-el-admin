@@ -62,12 +62,12 @@
 		"prefix": "eradiogroup"
 	},
 	"eButton": {
-		"body": ["<el-button type=\"primary\" @click=\"$2\">$1</el-button>"],
+		"body": ["<el-button type=\"primary\">$1</el-button>"],
 		"prefix": "ebutton"
 	},
 	"eForm": {
 		"body": [
-			"<el-form ref=\"form\" :model=\"form\" label-width=\"80px\">",
+			"<el-form label-width=\"80px\">",
 			"\t<el-form-item label=\"label\">",
 			"\t\t$1",
 			"\t</el-form-item>",
@@ -117,7 +117,7 @@
 	},
 	"el$confirm": {
 		"body": [
-			"this.\\$confirm('此操作将永久删除该文件, 是否继续?', '提示', {",
+			"this.\\$confirm('您确定要这样做吗?', '提示', {",
 			"\tconfirmButtonText: '确定',",
 			"\tcancelButtonText: '取消',",
 			"\ttype: 'warning'",

@@ -42,3 +42,11 @@
 # 修改 data 中的数组的方法
 
 `@click.stop.native="事件名"`
+
+# 安装 vuex
+
+`npm install vuex --save`
+
+# 拖拽插件
+
+`npm install awe-dnd --save`
