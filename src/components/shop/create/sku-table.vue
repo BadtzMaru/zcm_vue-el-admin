@@ -35,10 +35,16 @@
 					v-for="(sku, skuI) in item.skus"
 					:key="skuI"
 					class="text-center"
+					style="vertical-align:middle;"
 				>
 					{{ sku.name }}
 				</td>
-				<td class="text-center" width="100">
+
+				<td
+					class="text-center"
+					width="100"
+					style="vertical-align:middle;"
+				>
 					<span
 						v-if="!item.image"
 						class="btn btn-light border text-center"
@@ -56,7 +62,12 @@
 						@click="chooseImage(item)"
 					/>
 				</td>
-				<td class="text-center" width="100">
+
+				<td
+					class="text-center"
+					width="100"
+					style="vertical-align:middle;"
+				>
 					<input
 						type="number"
 						v-model="item.pprice"
@@ -64,42 +75,66 @@
 					/>
 				</td>
 
-				<td class="text-center" width="100">
+				<td
+					class="text-center"
+					width="100"
+					style="vertical-align:middle;"
+				>
 					<input
 						type="number"
 						v-model="item.oprice"
 						class="form-control text-center"
 					/>
 				</td>
-				<td class="text-center" width="100">
+				<td
+					class="text-center"
+					width="100"
+					style="vertical-align:middle;"
+				>
 					<input
 						type="number"
 						v-model="item.cprice"
 						class="form-control text-center"
 					/>
 				</td>
-				<td class="text-center" width="100">
+				<td
+					class="text-center"
+					width="100"
+					style="vertical-align:middle;"
+				>
 					<input
 						type="number"
 						v-model="item.stock"
 						class="form-control text-center"
 					/>
 				</td>
-				<td class="text-center" width="100">
+				<td
+					class="text-center"
+					width="100"
+					style="vertical-align:middle;"
+				>
 					<input
 						type="number"
 						v-model="item.volume"
 						class="form-control text-center"
 					/>
 				</td>
-				<td class="text-center" width="100">
+				<td
+					class="text-center"
+					width="100"
+					style="vertical-align:middle;"
+				>
 					<input
 						type="number"
 						v-model="item.weight"
 						class="form-control text-center"
 					/>
 				</td>
-				<td class="text-center" width="100">
+				<td
+					class="text-center"
+					width="100"
+					style="vertical-align:middle;"
+				>
 					<input
 						type="text"
 						v-model="item.code"
