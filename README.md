@@ -55,3 +55,7 @@
 
 1. `provide() {return {app:this}}`
 2. `inject: ['app']`
+3. 注入的组件中
+   `this.app.show((res)=>{console.log(res)})`
+4. 依赖的组件中
+   `show(callback){ callback('hello')}`
