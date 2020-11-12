@@ -34,14 +34,19 @@ export default {
 						pathname: 'shop_goods_list',
 					},
 					{
-						icon: 'el-icon-s-help',
-						name: '分类管理',
+						icon: 'el-icon-coin',
+						name: '商品分类',
 						pathname: 'shop_category_list',
 					},
 					{
-						icon: 'el-icon-s-cooperation',
+						icon: 'el-icon-help',
 						name: '商品规格',
 						pathname: 'shop_sku_list',
+					},
+					{
+						icon: 'el-icon-s-help',
+						name: '商品类型',
+						pathname: 'shop_type_list',
 					},
 				],
 			},

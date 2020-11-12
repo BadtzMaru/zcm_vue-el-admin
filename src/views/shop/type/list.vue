@@ -27,16 +27,14 @@
 				align="center"
 			></el-table-column>
 			<el-table-column
-				label="规格名称"
+				label="类型名称"
 				align="center"
 				prop="name"
 			></el-table-column>
-			<el-table-column
-				prop="value"
-				label="规格值"
-				align="center"
-				width="380"
-			>
+			<el-table-column label="属性标签" align="center" width="380">
+				<template slot-scope="scope">
+					{{ scope.row.value_list | formatValue }}
+				</template>
 			</el-table-column>
 			<el-table-column prop="order" label="排序" align="center">
 			</el-table-column>
@@ -89,14 +87,19 @@
 			</div>
 		</el-footer>
 		<!-- 新增/修改模态框 -->
-		<el-dialog title="添加规格" :visible.sync="createModel" top="5vh">
+		<el-dialog
+			width="80%"
+			title="添加类型"
+			:visible.sync="createModel"
+			top="5vh"
+		>
 			<!-- 表单内容 -->
 			<el-form ref="form" :model="form" :rules="rules" label-width="80px">
-				<el-form-item label="规格名称" prop="name">
+				<el-form-item label="类型名称" prop="name">
 					<el-input
 						class="w-25"
 						v-model="form.name"
-						placeholder="规格名称"
+						placeholder="类型名称"
 						size="mini"
 					></el-input>
 				</el-form-item>
@@ -113,20 +116,22 @@
 						<el-radio :label="0" border>禁用</el-radio>
 					</el-radio-group>
 				</el-form-item>
-				<el-form-item label="类型">
-					<el-radio-group v-model="form.type" size="mini">
-						<el-radio :label="0" border>文字</el-radio>
-						<el-radio :label="1" border>颜色</el-radio>
-						<el-radio :label="2" border>图片</el-radio>
-					</el-radio-group>
+				<el-form-item label="关联规格">
+					<div class="d-flex">
+						<span
+							class="py-2 border rounded mr-3 sku_list-item"
+							style="line-height:1;min-width:80px;text-align:center;"
+						>
+							<font>颜色</font>
+							<i class="el-icon-delete"></i>
+						</span>
+						<el-button size="mini">
+							<i class="el-icon-plus"></i>
+						</el-button>
+					</div>
 				</el-form-item>
-				<el-form-item label="规格值" prop="value">
-					<el-input
-						type="textarea"
-						:rows="3"
-						placeholder="一行一个规格项,多个规格项用换行来输入"
-						v-model="form.value"
-					></el-input>
+				<el-form-item label="属性列表">
+					属性列表
 				</el-form-item>
 			</el-form>
 			<div slot="footer">
@@ -146,27 +151,17 @@ export default {
 			tableData: [
 				{
 					id: 1,
-					name: '颜色',
-					value: '棕色,蓝色',
+					name: '鞋子',
 					order: 50,
-					status: 0,
-					type: 1,
-				},
-				{
-					id: 2,
-					name: '大小',
-					value: 'S,M,L',
-					order: 20,
 					status: 1,
-					type: 1,
-				},
-				{
-					id: 3,
-					name: '地区',
-					value: '北京,上海,福州',
-					order: 20,
-					status: 1,
-					type: 1,
+					sku_list: [
+						{ id: 1, name: '颜色' },
+						{ id: 2, name: '尺寸' },
+					],
+					value_list: [
+						{ order: 50, name: '特性', type: 'input', value: '' },
+						{ order: 50, name: '电池', type: 'radio', value: '' },
+					],
 				},
 			],
 			currentPage: 1,
@@ -197,6 +192,12 @@ export default {
 				],
 			},
 		};
+	},
+	filters: {
+		formatValue(value) {
+			let arr = value.map((v) => v.name);
+			return arr.join(',');
+		},
 	},
 	methods: {
 		// 批量删除
@@ -304,4 +305,18 @@ export default {
 };
 </script>
 
-<style></style>
+<style>
+.sku_list-item > i {
+	display: none;
+	cursor: pointer;
+}
+.sku_list-item:hover {
+	background-color: #f4f4f4;
+}
+.sku_list-item:hover > font {
+	display: none;
+}
+.sku_list-item:hover > i {
+	display: inline-block;
+}
+</style>

@@ -1,3 +1,7 @@
+# 安装 cnpm
+
+`npm install -g cnpm --registry=https://registry.npm.taobao.org`
+
 # 安装项目
 
 `npm install -g @vue/cli`

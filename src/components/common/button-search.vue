@@ -5,7 +5,7 @@
 			<slot name="left"></slot>
 			<!-- 右边 -->
 			<slot name="right">
-				<div class="ml-auto" v-show="!superSearch">
+				<div class="ml-auto" v-show="!superSearch" v-if="showSearch">
 					<el-input
 						v-model="keyword"
 						:placeholder="placeholder"
@@ -48,6 +48,10 @@ export default {
 		placeholder: {
 			type: String,
 			default: '',
+		},
+		showSearch: {
+			type: Boolean,
+			default: true,
 		},
 	},
 	data() {
