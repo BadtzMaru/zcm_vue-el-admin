@@ -33,6 +33,16 @@ export default {
 						name: '商品列表',
 						pathname: 'shop_goods_list',
 					},
+					{
+						icon: 'el-icon-s-help',
+						name: '分类管理',
+						pathname: 'shop_category_list',
+					},
+					{
+						icon: 'el-icon-s-cooperation',
+						name: '商品规格',
+						pathname: 'shop_sku_list',
+					},
 				],
 			},
 			{
