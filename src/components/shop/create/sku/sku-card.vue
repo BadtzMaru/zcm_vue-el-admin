@@ -9,7 +9,11 @@
 				size="mini"
 				style="width:200px;"
 			>
-				<el-button slot="append" icon="el-icon-more"> </el-button>
+				<el-button
+					slot="append"
+					icon="el-icon-more"
+					@click="chooseSkus"
+				></el-button>
 			</el-input>
 			<el-radio-group
 				:value="item.type"
@@ -76,6 +80,7 @@
 import { mapMutations } from 'vuex';
 import skuCardChildren from './sku-card-children.vue';
 export default {
+	inject: ['app'],
 	components: { skuCardChildren },
 	props: {
 		item: Object,
@@ -88,6 +93,9 @@ export default {
 		};
 	},
 	mounted() {
+		this.$watch('item.list', (newValue) => {
+			this.list = newValue;
+		});
 		this.$dragging.$on('dragend', (e) => {
 			if (e.group === `skuItem${this.index}`) {
 				this.sortSkuValue({ index: this.index, value: this.list });
@@ -108,6 +116,15 @@ export default {
 		// 规格卡片排序
 		sortCard(action, index) {
 			this.sortSkuCard({ action, index });
+		},
+		// 选择规格
+		chooseSkus() {
+			this.app.chooseSkus((res) => {
+				this.vModel('name', this.index, res.name);
+				this.vModel('type', this.index, res.type);
+				this.vModel('list', this.index, res.list);
+				this.list = res.list;
+			});
 		},
 	},
 };

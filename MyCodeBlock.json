@@ -10,12 +10,12 @@
 	},
 	"eCard": {
 		"body": [
-			"<el-card class=\"box-card\">",
+			"<el-card>",
 			"\t<div slot=\"header\" class=\"clearfix\">",
 			"\t\t<span>卡片名称</span>",
 			"\t\t<el-button style=\"float: right; padding: 3px 0\" type=\"text\">操作按钮</el-button>",
 			"\t</div>",
-			"\t<div class=\"text item\">$1</div>",
+			"\t<div>$1</div>",
 			"</el-card>"
 		],
 		"prefix": "ecard"
