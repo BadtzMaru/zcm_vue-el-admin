@@ -48,15 +48,49 @@ export default {
 						name: '商品类型',
 						pathname: 'shop_type_list',
 					},
+					{
+						icon: 'el-icon-s-comment',
+						name: '商品评论',
+						pathname: 'shop_comment_list',
+					},
 				],
 			},
 			{
 				name: '订单',
 				subActive: '0',
+				submenu: [
+					{
+						icon: 'el-icon-shopping-bag-1',
+						name: '订单管理',
+						pathname: 'order_order_list',
+					},
+					{
+						icon: 'el-icon-s-ticket',
+						name: '发票管理',
+						pathname: 'order_invoice_list',
+					},
+					{
+						icon: 'el-icon-service',
+						name: '售后服务',
+						pathname: 'order_after-sale_list',
+					},
+				],
 			},
 			{
 				name: '会员',
 				subActive: '0',
+				submenu: [
+					{
+						icon: 'el-icon-user-solid',
+						name: '会员列表',
+						pathname: 'user_user-list_list',
+					},
+					{
+						icon: 'el-icon-s-marketing',
+						name: '会员等级',
+						pathname: 'user_user-level_list',
+					},
+				],
 			},
 			{
 				name: '设置',

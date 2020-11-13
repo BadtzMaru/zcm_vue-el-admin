@@ -39,6 +39,30 @@ let routes = [
 				meta: { title: '商品类型管理' },
 				component: 'shop/type/list',
 			},
+			{
+				meta: { title: '商品评论管理' },
+				component: 'shop/comment/list',
+			},
+			{
+				meta: { title: '发票管理' },
+				component: 'order/invoice/list',
+			},
+			{
+				meta: { title: '售后服务' },
+				component: 'order/after-sale/list',
+			},
+			{
+				meta: { title: '订单列表' },
+				component: 'order/order/list',
+			},
+			{
+				meta: { title: '会员列表' },
+				component: 'user/user-list/list',
+			},
+			{
+				meta: { title: '会员等级' },
+				component: 'user/user-level/list',
+			},
 		],
 	},
 	{

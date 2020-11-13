@@ -6,7 +6,7 @@
 		<button-search class="pt-3" :showSearch="false">
 			<template #left>
 				<el-button size="mini" type="success" @click="openModel(false)"
-					>添加规格</el-button
+					>添加类型</el-button
 				>
 				<el-button size="mini" type="danger" @click="deleteAll"
 					>批量删除</el-button
@@ -131,7 +131,104 @@
 					</div>
 				</el-form-item>
 				<el-form-item label="属性列表">
-					属性列表
+					<el-table :data="form.value_list">
+						<el-table-column label="排序" width="80">
+							<template slot-scope="scope">
+								<el-input
+									v-model="scope.row.order"
+									size="mini"
+									placeholder="排序"
+								></el-input>
+							</template>
+						</el-table-column>
+						<el-table-column label="属性名称" width="130">
+							<template slot-scope="scope">
+								<el-input
+									v-model="scope.row.name"
+									size="mini"
+									placeholder="属性名称"
+								></el-input>
+							</template>
+						</el-table-column>
+						<el-table-column label="所属类型" width="130">
+							<template slot-scope="scope">
+								<el-select
+									v-model="scope.row.type"
+									placeholder="请选择所属类型"
+									size="mini"
+								>
+									<el-option
+										label="输入框"
+										value="input"
+									></el-option>
+									<el-option
+										label="单选框"
+										value="radio"
+									></el-option>
+									<el-option
+										label="多选框"
+										value="checkbox"
+									></el-option>
+								</el-select>
+							</template>
+						</el-table-column>
+						<el-table-column
+							label="是否显示"
+							prop="status"
+							width="80"
+						>
+							<template slot-scope="scope">
+								<el-switch
+									v-model="scope.row.status"
+									:active-value="1"
+									:inactive-value="0"
+								></el-switch>
+							</template>
+						</el-table-column>
+						<el-table-column label="属性值">
+							<template
+								slot-scope="scope"
+								v-if="scope.row.type !== 'input'"
+							>
+								<el-input
+									v-if="scope.row.isedit"
+									type="textarea"
+									v-model="scope.row.value"
+									size="mini"
+									placeholder="一行为一个属性值,多个属性值用换行输入"
+								></el-input>
+								<span v-else>{{ scope.row.value }}</span>
+							</template>
+						</el-table-column>
+						<el-table-column label="操作" width="180">
+							<template slot-scope="scope">
+								<el-button
+									v-if="scope.row.type !== 'input'"
+									type="text"
+									size="mini"
+									@click="editRow(scope)"
+									>{{
+										scope.row.isedit ? '完成' : '编辑属性值'
+									}}</el-button
+								>
+								<el-button
+									type="text"
+									size="mini"
+									@click="delRow(scope.$index)"
+									>删除</el-button
+								>
+							</template>
+						</el-table-column>
+					</el-table>
+				</el-form-item>
+				<el-form-item>
+					<el-button
+						type="text"
+						size="mini"
+						icon="el-icon-plus"
+						@click="addValue"
+						>添加一个属性</el-button
+					>
 				</el-form-item>
 			</el-form>
 			<div slot="footer">
@@ -172,21 +269,22 @@ export default {
 				name: '',
 				order: 50,
 				status: 1,
-				type: 0,
-				value: '',
+				sku_list: [],
+				value_list: [
+					{
+						order: 50,
+						name: '属性名称',
+						type: 'input',
+						value: '属性值',
+						isedit: false,
+					},
+				],
 			},
 			rules: {
 				name: [
 					{
 						required: true,
-						message: '规格名称不能为空',
-						trigger: 'blur',
-					},
-				],
-				value: [
-					{
-						required: true,
-						message: '规格值不能为空',
+						message: '类型名称不能为空',
 						trigger: 'blur',
 					},
 				],
@@ -233,18 +331,23 @@ export default {
 					name: '',
 					order: 50,
 					status: 1,
-					type: 0,
-					value: '',
+					sku_list: [],
+					value_list: [
+						{
+							order: 50,
+							name: '属性名称',
+							type: 'input',
+							value: '属性值',
+							isedit: false,
+						},
+					],
 				};
 				this.editIndex = -1;
 			} else {
 				// 修改
 				this.form = {
-					name: e.row.name,
-					order: e.row.order,
-					status: e.row.status,
-					type: e.row.type,
-					value: e.row.value.replace(/,/g, '\n'),
+					...e.row,
+					value_list: [...e.row.value_list],
 				};
 				this.editIndex = e.$index;
 			}
@@ -264,12 +367,42 @@ export default {
 		handleSelectionChange(val) {
 			this.multipleSelection = val;
 		},
-		// 添加规格
+		// 添加类型
 		submit() {
 			this.$refs.form.validate((res) => {
+				// 验证属性列表
+				let result = true;
+				let message = [];
+				this.form.value_list.forEach((item, index) => {
+					let no = index + 1;
+					if (item.order === '') {
+						result = result && false;
+						message.push('第' + no + '行,排序不能为空');
+					}
+					if (item.name === '') {
+						result = result && false;
+						message.push('第' + no + '行,属性名称不能为空');
+					}
+					if (item.type !== 'input' && item.value === '') {
+						result = result && false;
+						message.push('第' + no + '行,属性值不能为空');
+					}
+				});
+				if (!result) {
+					let temp = '';
+					message.forEach((v) => {
+						temp += `<li>${v}</li>`;
+					});
+					return this.$notify({
+						title: '属性提示',
+						dangerouslyUseHTMLString: true,
+						message: `<ul>${temp}</ul>`,
+						type: 'warning',
+						duration: 3000,
+					});
+				}
 				if (res) {
 					let msg = '添加';
-					this.form.value = this.form.value.replace(/\n/g, ',');
 					if (this.editIndex === -1) {
 						this.tableData.unshift(this.form);
 					} else {
@@ -300,6 +433,24 @@ export default {
 					});
 				})
 				.catch(() => {});
+		},
+		// 添加属性
+		addValue() {
+			this.form.value_list.push({
+				order: 50,
+				name: '',
+				type: 'input',
+				value: '',
+				isedit: false,
+			});
+		},
+		// 编辑属性
+		editRow(scope) {
+			scope.row.isedit = !scope.row.isedit;
+		},
+		// 删除属性值
+		delRow(index) {
+			this.form.value_list.splice(index, 1);
 		},
 	},
 };
