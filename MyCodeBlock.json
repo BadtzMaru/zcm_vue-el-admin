@@ -106,6 +106,14 @@
 		],
 		"prefix": "erow"
 	},
+	"eTable": {
+		"body": [
+			"<el-table :data=\"$1\">",
+			"\t<el-table-column label=\"$2\"></el-table-column>",
+			"</el-table>"
+		],
+		"prefix": "etable"
+	},
 	"el$message": {
 		"body": [
 			"this.\\$message({",

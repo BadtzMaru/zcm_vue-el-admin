@@ -10,16 +10,16 @@
 				>
 			</template>
 			<template #right>
-				<div>
+				<div class="ml-auto">
 					<small class="mr-2">请选择升级标准: </small>
 					<el-radio-group v-model="level" size="mini">
-						<el-radio-button label="累计消费"></el-radio-button>
-						<el-radio-button label="累计次数"></el-radio-button>
+						<el-radio-button :label="0">累计消费</el-radio-button>
+						<el-radio-button :label="1">累计次数</el-radio-button>
 					</el-radio-group>
 				</div>
 			</template>
 		</button-search>
-		<!-- 商品列表 -->
+		<!-- 会员等级表格 -->
 		<el-table
 			border
 			class="mt-3 mb-3"
@@ -30,16 +30,12 @@
 			</el-table-column>
 			<el-table-column label="升级条件" align="center" width="250">
 				<template slot-scope="scope">
-					{{
-						level +
-							':' +
-							(level === '累计消费'
-								? scope.row.consume
-								: scope.row.times)
-					}}
+					{{ getLevel.name + ':' + scope.row[getLevel.value] }}
 				</template>
 			</el-table-column>
-			<el-table-column label="折扣率" align="center" prop="discount">
+			<el-table-column label="折扣率(%)" align="center" prop="discount">
+			</el-table-column>
+			<el-table-column label="等级序号" align="center" prop="level">
 			</el-table-column>
 			<el-table-column label="状态" align="center">
 				<template slot-scope="scope">
@@ -55,7 +51,6 @@
 					<el-button type="text" size="mini" @click="openModel(scope)"
 						>修改</el-button
 					>
-					<el-button type="text" size="mini">重置密码</el-button>
 					<el-button
 						type="text"
 						size="mini"
@@ -82,95 +77,83 @@
 			</div>
 		</el-footer>
 		<!-- 新增/修改模态框 -->
-		<el-dialog title="添加会员" :visible.sync="createModel" top="5vh">
+		<el-dialog title="添加等级" :visible.sync="createModel" width="700px">
 			<!-- 表单内容 -->
 			<el-form ref="form" :model="form" label-width="80px">
-				<el-form-item label="用户名" prop="name">
+				<el-form-item label="等级名称" prop="name">
 					<el-input
 						class="w-25"
-						v-model="form.username"
-						placeholder="用户名"
+						v-model="form.name"
+						placeholder="等级名称"
 						size="mini"
 					></el-input>
+					<small class="text-secondary d-block">
+						设置会员等级名称
+					</small>
 				</el-form-item>
-				<el-form-item label="密码">
+				<el-form-item label="等级权重">
 					<el-input
 						class="w-25"
-						v-model="form.password"
-						placeholder="密码"
-						type="password"
+						v-model="form.level"
+						placeholder="等级权重"
+						type="number"
 						size="mini"
 					></el-input>
+					<small class="text-secondary d-block">
+						设置会员等级排序(此参数决定等级的高低,排序越大等级越高,轻慎重选择)
+					</small>
 				</el-form-item>
-				<el-form-item label="昵称">
-					<el-input
-						class="w-25"
-						v-model="form.nickname"
-						placeholder="昵称"
-						size="mini"
-					></el-input>
-				</el-form-item>
-				<el-form-item label="头像">
-					<div>
-						<span
-							v-if="!form.avatar"
-							class="btn btn-light border text-center"
-							style="width:45px;height:45px;line-height:33px;"
-							@click="chooseImage"
-						>
-							<i class="el-icon-plus"></i>
-						</span>
-						<img
-							v-else
-							:src="form.avatar"
-							alt="image"
-							style="width:45px;height:45px;cursor:pointer;"
-							class="rounded"
-							@click="chooseImage"
-						/>
-					</div>
-				</el-form-item>
-				<el-form-item label="会员等级">
-					<el-select
-						size="mini"
-						v-model="form.level_id"
-						placeholder="请选择会员等级"
-					>
-						<el-option
-							label="普通会员"
-							value="shanghai"
-						></el-option>
-						<el-option label="黄金会员" value="beijing"></el-option>
-					</el-select>
-				</el-form-item>
-				<el-form-item label="手机" prop="phone">
-					<el-input
-						class="w-25"
-						v-model="form.phone"
-						placeholder="手机"
-						size="mini"
-					></el-input>
-				</el-form-item>
-				<el-form-item label="邮箱" prop="email">
-					<el-input
-						class="w-25"
-						v-model="form.email"
-						placeholder="邮箱"
-						size="mini"
-					></el-input>
-				</el-form-item>
-				<el-form-item label="性别">
-					<el-radio-group v-model="form.sex" size="mini">
-						<el-radio :label="0" border>保密</el-radio>
-						<el-radio :label="1" border>男性</el-radio>
-						<el-radio :label="2" border>女性</el-radio>
-					</el-radio-group>
-				</el-form-item>
-				<el-form-item label="状态">
+				<el-form-item label="是否启用">
 					<el-radio-group v-model="form.status" size="mini">
 						<el-radio :label="1" border>启用</el-radio>
 						<el-radio :label="0" border>禁用</el-radio>
 					</el-radio-group>
+				</el-form-item>
+				<el-form-item label="升级条件">
+					<div>
+						<small class="mr-2">累计消费满</small>
+						<el-input
+							v-model="form.consume"
+							size="mini"
+							placeholder="累计消费"
+							style="width:35%;"
+							type="number"
+						>
+							<template slot="append">元</template>
+						</el-input>
+						<small class="text-secondary d-block">
+							设置会员等级所需要的累计消费必须大于0,单位: 元
+						</small>
+					</div>
+					<div>
+						<small class="mr-2">累计次数满</small>
+						<el-input
+							v-model="form.times"
+							size="mini"
+							placeholder="累计次数"
+							style="width:35%;"
+							type="number"
+						>
+							<template slot="append">次</template>
+						</el-input>
+						<small class="text-secondary d-block">
+							设置会员等级所需要的购买数量必须大于0,单位: 笔
+						</small>
+					</div>
+				</el-form-item>
+				<el-form-item label="折扣率(%)">
+					<el-input
+						class="w-25"
+						v-model="form.discount"
+						placeholder="折扣率"
+						size="mini"
+						type="number"
+					>
+						<template slot="append">%</template>
+					</el-input>
+					<small class="text-secondary ml-2">
+						折扣率单位为百分比,如输入99,则表示该会员等级的用户可以以商品原价的90%购买
+					</small>
 				</el-form-item>
 			</el-form>
 			<div slot="footer">
@@ -188,7 +171,7 @@ export default {
 	components: { buttonSearch },
 	data() {
 		return {
-			level: '累计消费',
+			level: 0,
 			tableData: [
 				{
 					name: '普通会员',
@@ -209,18 +192,29 @@ export default {
 				time: '',
 			},
 			form: {
-				username: '',
-				password: '',
-				nickname: '',
-				avatar: '',
+				name: '',
+				consume: 0,
+				times: 0,
+				discount: 0,
+				level: 0,
 				status: 1,
-				level_id: 1,
-				phone: '',
-				email: '',
-				sex: 0,
-				level: null,
 			},
 		};
+	},
+	computed: {
+		getLevel() {
+			let arr = [
+				{
+					name: '累计消费',
+					value: 'consume',
+				},
+				{
+					name: '累计次数',
+					value: 'times',
+				},
+			];
+			return arr[this.level];
+		},
 	},
 	methods: {
 		// 打开模态框
@@ -229,31 +223,23 @@ export default {
 			if (!e) {
 				// 初始化表单
 				this.form = {
-					username: '',
-					password: '',
-					nickname: '',
-					avatar: '',
+					name: '',
+					consume: 0,
+					times: 0,
+					discount: 0,
+					level: 0,
 					status: 1,
-					level_id: 1,
-					phone: '',
-					email: '',
-					sex: 0,
-					level: null,
 				};
 				this.editIndex = -1;
 			} else {
 				// 修改
 				this.form = {
-					username: e.row.username,
-					password: '',
-					nickname: e.row.nickname,
-					avatar: e.row.avatar,
-					status: e.row.status,
-					level_id: e.row.level_id,
-					phone: e.row.phone,
-					email: e.row.email,
-					sex: e.row.sex,
+					name: e.row.name,
+					consume: e.row.consume,
+					times: e.row.times,
+					discount: e.row.discount,
 					level: e.row.level,
+					status: e.row.status,
 				};
 				this.editIndex = e.$index;
 			}
@@ -273,10 +259,6 @@ export default {
 		submit() {
 			let msg = '添加';
 			if (this.editIndex === -1) {
-				this.form.level = {
-					id: 1,
-					name: '普通会员',
-				};
 				this.tableData.unshift(this.form);
 			} else {
 				this.$set(this.tableData, this.editIndex, this.form);
@@ -291,7 +273,7 @@ export default {
 		},
 		// 删除单个
 		deleteItem(scope) {
-			this.$confirm('是否要删除该会员?', '提示', {
+			this.$confirm('是否要删除该等级?', '提示', {
 				confirmButtonText: '删除',
 				cancelButtonText: '取消',
 				type: 'warning',

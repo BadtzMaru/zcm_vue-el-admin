@@ -95,6 +95,28 @@ export default {
 			{
 				name: '设置',
 				subActive: '0',
+				submenu: [
+					{
+						icon: 'el-icon-s-tools',
+						name: '基础设置',
+						pathname: 'set_base',
+					},
+					{
+						icon: 'el-icon-truck',
+						name: '物流设置',
+						pathname: 'set_express',
+					},
+					{
+						icon: 'el-icon-s-check',
+						name: '管理员管理',
+						pathname: 'set_manager',
+					},
+					{
+						icon: 'el-icon-money',
+						name: '交易设置',
+						pathname: 'set_payment',
+					},
+				],
 			},
 		],
 	},
