@@ -75,7 +75,7 @@
 				align="center"
 			></el-table-column>
 			<el-table-column type="expand">
-				<template slot-scope="props">
+				<template>
 					<div class="media">
 						<img
 							src="https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1605247649015&di=e61f30fd8b50386d78906feaefe0f438&imgtype=0&src=http%3A%2F%2Fc-ssl.duitang.com%2Fuploads%2Fitem%2F202008%2F08%2F20200808135140_THdwT.thumb.400_0.jpeg"

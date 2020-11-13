@@ -72,3 +72,7 @@
 # vue-quill-editor 富文本编辑器
 
 `npm install vue-quill-editor`
+
+# 使用 vue 插件安装 axios
+
+`vue add axios`
