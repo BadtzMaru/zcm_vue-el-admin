@@ -25,30 +25,17 @@
 					</el-form-item>
 					<el-form-item label="会员等级" class="mb-0">
 						<el-select
-							v-model="search.group_id"
-							placeholder="请选择活动区域"
+							v-model="search.user_level_id"
+							placeholder="请选择会员等级"
 							size="mini"
 						>
 							<el-option
-								label="区域一"
-								value="shanghai"
-							></el-option>
-							<el-option
-								label="区域二"
-								value="beijing"
+								v-for="(item, index) in user_level"
+								:key="index"
+								:label="item.name"
+								:value="item.id"
 							></el-option>
 						</el-select>
-					</el-form-item>
-					<el-form-item label="发布时间" class="mb-0">
-						<el-date-picker
-							size="mini"
-							v-model="search.time"
-							type="daterange"
-							range-separator="至"
-							start-placeholde="开始日期"
-							end-placeholde="结束日期"
-						>
-						</el-date-picker>
 					</el-form-item>
 					<el-form-item class="mb-0">
 						<el-button type="info" size="mini" @click="searchEvent"
@@ -94,22 +81,24 @@
 			</el-table-column>
 			<el-table-column label="会员等级" align="center">
 				<template slot-scope="scope">
-					{{ scope.row.level.name }}
+					{{ scope.row.user_level.name }}
 				</template>
 			</el-table-column>
 			<el-table-column label="登陆注册" align="center" width="250">
 				<template slot-scope="scope">
 					<div>注册时间: {{ scope.row.create_time }}</div>
-					<div>最后登录: {{ scope.row.update_time }}</div>
+					<div>最后登录: {{ scope.row.last_login_time }}</div>
 				</template>
 			</el-table-column>
 			<el-table-column label="状态" align="center">
 				<template slot-scope="scope">
-					<el-switch
-						v-model="scope.row.status"
-						:active-value="1"
-						:inactive-value="0"
-					></el-switch>
+					<el-button
+						@click="changeStatus(scope.row)"
+						:type="scope.row.status ? 'success' : 'danger'"
+						size="mini"
+						plain
+						>{{ scope.row.status ? '启用' : '禁用' }}</el-button
+					>
 				</template>
 			</el-table-column>
 			<el-table-column label="操作" width="150">
@@ -121,7 +110,7 @@
 					<el-button
 						type="text"
 						size="mini"
-						@click="deleteItem(scope)"
+						@click="deleteItem(scope.row)"
 						>删除</el-button
 					>
 				</template>
@@ -134,11 +123,13 @@
 		>
 			<div style="flex:1;" class="px-2">
 				<el-pagination
-					:current-page="currentPage"
-					:page-sizes="[100, 200, 300, 400]"
-					:page-size="100"
+					:current-page="page.current"
+					:page-sizes="page.sizes"
+					:page-size="page.size"
+					:total="page.total"
 					layout="total, sizes, prev, pager, next, jumper"
-					:total="400"
+					@size-change="handleSizeChange"
+					@current-change="handleCurrentChange"
 				>
 				</el-pagination>
 			</div>
@@ -245,36 +236,20 @@
 
 <script>
 import buttonSearch from '@/components/common/button-search.vue';
+import common from '@/common/mixins/common.js';
 export default {
-	inject: ['app'],
+	inject: ['app', 'layout'],
+	mixins: [common],
 	components: { buttonSearch },
 	data() {
 		return {
-			tableData: [
-				{
-					id: 1,
-					username: '用户名',
-					nickname: '张三',
-					avatar:
-						'https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1605260977515&di=11ce477700f27c711a2cf7bc2f56349a&imgtype=0&src=http%3A%2F%2Fpic2.zhimg.com%2F50%2Fv2-1457e32f5a22c5f13ab7df98c81d25c1_hd.jpg',
-					level_id: 1,
-					level: {
-						id: 1,
-						name: '普通会员',
-					},
-					create_time: '2019-08-01 14:18:54',
-					update_time: '2020-07-15 14:18:54',
-					status: 1,
-					sex: 0,
-				},
-			],
-			currentPage: 1,
+			preUrl: 'user',
+			tableData: [],
 			createModel: false,
 			editIndex: -1,
 			search: {
 				keyword: '',
-				group_id: 0,
-				time: '',
+				user_level_id: '',
 			},
 			form: {
 				username: '',
@@ -288,9 +263,15 @@ export default {
 				sex: 0,
 				level: null,
 			},
+			user_level: [],
 		};
 	},
 	methods: {
+		getListResult(e) {
+			console.log(e);
+			this.tableData = e.list;
+			this.user_level = e.user_level;
+		},
 		// 打开模态框
 		openModel(e = false) {
 			// 增加
@@ -328,15 +309,6 @@ export default {
 			// 打开dialog
 			this.createModel = true;
 		},
-		// 修改状态
-		changeStatus(item) {
-			// 请求服务端修改状态
-			item.status = item.status === 0 ? 1 : 0;
-			this.$message({
-				message: item.status ? '启用' : '禁用',
-				type: 'success',
-			});
-		},
 		// 添加规格
 		submit() {
 			let msg = '添加';
@@ -357,39 +329,28 @@ export default {
 				type: 'success',
 			});
 		},
-		// 删除单个
-		deleteItem(scope) {
-			this.$confirm('是否要删除该会员?', '提示', {
-				confirmButtonText: '删除',
-				cancelButtonText: '取消',
-				type: 'warning',
-			})
-				.then(() => {
-					this.tableData.splice(scope.$index, 1);
-					this.$message({
-						message: '删除成功',
-						type: 'success',
-					});
-				})
-				.catch(() => {});
-		},
 		// 清空筛选条件
 		clearSearch() {
 			this.search = {
 				keyword: '',
-				group_id: 0,
-				time: '',
+				user_level_id: '',
 			};
 			this.$refs.buttonSearch.closeSuperSearch();
+			this.getList();
+		},
+		getListUrl() {
+			return `/admin/${this.preUrl}/${this.page.current}?limit=${this.page.size}&keyword=${this.search.keyword}&user_level_id=${this.search.user_level_id}`;
 		},
 		// 搜索事件
 		searchEvent(e = false) {
-			// 简单搜索
 			if (typeof e === 'string') {
-				return console.log('简单搜索');
+				// 简单搜索
+				this.search.keyword = e;
+				this.getList();
+			} else {
+				// 高级搜索
+				this.getList();
 			}
-			// 高级搜索
-			console.log('搜索事件');
 		},
 		// 选择头像
 		chooseImage() {

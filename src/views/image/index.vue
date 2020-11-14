@@ -13,17 +13,19 @@
 						class="mr-2"
 						v-model="searchForm.order"
 					>
-						<el-option label="区域一" value="shanghai"></el-option>
-						<el-option label="区域二" value="beijing"></el-option>
+						<el-option label="降序" value="desc"></el-option>
+						<el-option label="升序" value="asc"></el-option>
 					</el-select>
 					<el-input
 						class="mr-2"
 						size="mini"
 						style="width: 150px;"
-						placeholder="请输入相册名称"
+						placeholder="请输入图片名称"
 						v-model="searchForm.keyword"
 					></el-input>
-					<el-button type="success" size="mini">搜索</el-button>
+					<el-button type="success" size="mini" @click="getImageList"
+						>搜索</el-button
+					>
 				</div>
 				<el-button
 					type="warning"
@@ -68,7 +70,7 @@
 							:active="albumIndex === index"
 							@change="albumChange"
 							@edit="openAlbumModel"
-							@del="albumDel"
+							@del="albumDel(index)"
 						></album-item>
 					</ul>
 				</el-aside>
@@ -138,7 +140,12 @@
 													class="p-2"
 													size="mini"
 													icon="el-icon-delete"
-													@click="imageDel({ index })"
+													@click="
+														imageDel({
+															index,
+															item,
+														})
+													"
 												></el-button>
 											</el-button-group>
 										</div>
@@ -156,8 +163,18 @@
 					class="h-100 d-flex align-items-center justify-content-center border-right"
 				>
 					<el-button-group>
-						<el-button size="mini">上一页</el-button>
-						<el-button size="mini">下一页</el-button>
+						<el-button
+							size="mini"
+							:disabled="albumPage === 1"
+							@click="changeAlbumPage('pre')"
+							>上一页</el-button
+						>
+						<el-button
+							size="mini"
+							@click="changeAlbumPage('next')"
+							:disabled="Math.ceil(albumTotal / 10) === albumPage"
+							>下一页</el-button
+						>
 					</el-button-group>
 				</div>
 				<div style="flex:1;" class="px-2">
@@ -165,10 +182,10 @@
 						@size-change="handleSizeChange"
 						@current-change="handleCurrentChange"
 						:current-page="currentPage"
-						:page-sizes="[100, 200, 300, 400]"
-						:page-size="100"
+						:page-sizes="pageSizes"
+						:page-size="pageSize"
 						layout="total, sizes, prev, pager, next, jumper"
-						:total="400"
+						:total="total"
 					>
 					</el-pagination>
 				</div>
@@ -200,13 +217,16 @@
 			</div>
 		</el-dialog>
 		<!-- 上传图片 -->
-		<el-dialog title="上传图片" :visible.sync="uploadModel">
+		<el-dialog title="上传图片" :visible.sync="uploadModel" @close="__init">
 			<div class="text-center">
 				<el-upload
 					class="upload-demo"
 					drag
-					action="https://jsonplaceholder.typicode.com/posts/"
+					action="/admin/image/upload"
 					multiple
+					:headers="{ token: $store.state.user.token }"
+					:data="{ image_class_id: this.image_class_id }"
+					name="img"
 				>
 					<i class="el-icon-upload"></i>
 					<div class="el-upload__text">
@@ -230,12 +250,13 @@
 <script>
 import albumItem from '@/components/image/album-item.vue';
 export default {
+	inject: ['layout'],
 	components: { albumItem },
 	data() {
 		return {
 			uploadModel: false,
 			searchForm: {
-				order: '',
+				order: 'desc',
 				keyword: '',
 			},
 			albumIndex: 0,
@@ -246,17 +267,35 @@ export default {
 				order: '0',
 			},
 			albums: [],
+			albumPage: 1,
+			albumTotal: 0,
 			previewModel: false,
 			previewUrl: '',
 			imageList: [],
 			// 选中的数组
 			chooseList: [],
 			currentPage: 1,
+			pageSize: 10,
+			pageSizes: [10, 20, 50, 100],
+			total: 0,
 		};
 	},
 	computed: {
 		ablumModelTitle() {
 			return this.albumEditIndex > -1 ? '修改相册' : '创建相册';
+		},
+		// 选中相册id
+		image_class_id() {
+			let item = this.albums[this.albumIndex];
+			if (item) return item.id;
+			return 0;
+		},
+		// 当前选中相册的图片列表url
+		getImageListUrl() {
+			let other = '';
+			if (this.searchForm.keyword !== '')
+				other = `&keyword=${this.searchForm.keyword}`;
+			return `/admin/imageclass/${this.image_class_id}/image/${this.currentPage}?limit=${this.pageSize}&order=${this.searchForm.order}${other}`;
 		},
 	},
 	created() {
@@ -316,29 +355,52 @@ export default {
 			// 重置序号
 			item.checkOrder = 0;
 		},
+		// 获取对应相册下的图片列表
+		getImageList() {
+			this.layout.showLoading();
+			this.axios
+				.get(this.getImageListUrl, { token: true })
+				.then((res) => {
+					let result2 = res.data.data;
+					this.imageList = result2.list.map((item) => {
+						return {
+							id: item.id,
+							url: item.url,
+							name: item.name,
+							ischeck: false,
+							checkOrder: 0,
+						};
+					});
+					this.total = result2.totalCount;
+					this.layout.hideLoading();
+				})
+				.catch(() => {
+					this.layout.hideLoading();
+				});
+		},
 		// 初始化页面
 		__init() {
-			for (let i = 0; i < 20; i++) {
-				this.albums.push({
-					name: '相册' + i,
-					num: Math.floor(Math.random() * 100),
-					order: 0,
+			// 获取相册列表
+			this.layout.showLoading();
+			this.axios
+				.get(`/admin/imageclass/${this.albumPage}`, {
+					token: true,
+				})
+				.then((res) => {
+					let result = res.data.data;
+					this.albums = result.list;
+					this.albumTotal = result.totalCount;
+					// 获取选中相册下的第一页图片列表
+					this.getImageList();
+				})
+				.catch(() => {
+					this.layout.hideLoading();
 				});
-			}
-			for (let i = 0; i < 30; i++) {
-				this.imageList.push({
-					id: i,
-					url:
-						'https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1604988789449&di=f8b7b63b35aa4de72ce6374bfe8822b8&imgtype=0&src=http%3A%2F%2Fwww.aspku.com%2Fuploads%2Fallimg%2F190823%2F23244K9D-2.jpg',
-					name: '图片' + i,
-					ischeck: false,
-					checkOrder: 0,
-				});
-			}
 		},
 		// 切换相册
 		albumChange(index) {
 			this.albumIndex = index;
+			this.getImageList();
 		},
 		// 删除相册
 		albumDel(index) {
@@ -348,15 +410,27 @@ export default {
 				type: 'warning',
 			})
 				.then(() => {
-					this.albums.splice(index, 1);
-					this.$message({
-						message: '删除成功',
-						type: 'success',
-					});
+					this.layout.showLoading();
+					let id = this.albums[index].id;
+					this.axios
+						.delete(`/admin/imageclass/${id}`, {
+							token: true,
+						})
+						.then(() => {
+							this.layout.hideLoading();
+							this.$message({
+								message: '删除成功',
+								type: 'success',
+							});
+							this.__init();
+						})
+						.catch(() => {
+							this.layout.hideLoading();
+						});
 				})
 				.catch(() => {});
 		},
-		// 打开相册修改/创建框
+		// 打开相册修改/创建相册modal
 		openAlbumModel(obj) {
 			// 修改
 			if (obj) {
@@ -380,18 +454,42 @@ export default {
 				this.albumEdit();
 				return (this.albumModel = false);
 			}
-			// 追加albums
-			this.albums.unshift({
-				name: this.albumForm.name,
-				order: this.albumForm.order,
-				num: 0,
-			});
-			return (this.albumModel = false);
+			// 创建相册
+			this.layout.showLoading();
+			this.axios
+				.post('/admin/imageclass', this.albumForm, { token: true })
+				.then(() => {
+					this.layout.hideLoading();
+					this.albumModel = false;
+					this.$message({
+						message: '创建成功',
+						type: 'success',
+					});
+					this.__init();
+				})
+				.catch(() => {
+					this.layout.hideLoading();
+				});
 		},
 		// 修改相册
 		albumEdit() {
-			this.albums[this.albumEditIndex].name = this.albumForm.name;
-			this.albums[this.albumEditIndex].order = this.albumForm.order;
+			let item = this.albums[this.albumEditIndex];
+			this.layout.showLoading();
+			this.axios
+				.post(`/admin/imageclass/${item.id}`, this.albumForm, {
+					token: true,
+				})
+				.then(() => {
+					this.$message({
+						message: '修改成功',
+						type: 'success',
+					});
+					this.layout.hideLoading();
+					this.__init();
+				})
+				.catch(() => {
+					this.layout.hideLoading();
+				});
 		},
 		// 预览图片
 		previewImage(item) {
@@ -411,11 +509,26 @@ export default {
 				},
 			})
 				.then(({ value }) => {
-					item.name = value;
-					this.$message({
-						type: 'success',
-						message: '修改成功',
-					});
+					this.layout.showLoading();
+					this.axios
+						.post(
+							`/admin/image/${item.id}`,
+							{
+								name: value,
+							},
+							{ token: true }
+						)
+						.then(() => {
+							this.layout.hideLoading();
+							this.$message({
+								type: 'success',
+								message: '修改成功',
+							});
+							this.__init();
+						})
+						.catch(() => {
+							this.layout.hideLoading();
+						});
 				})
 				.catch(() => {});
 		},
@@ -431,30 +544,68 @@ export default {
 				}
 			)
 				.then(() => {
+					this.layout.showLoading();
 					if (obj.all) {
-						let list = this.imageList.filter((img) => {
-							return !this.chooseList.some((c) => {
-								return c.id === img.id;
+						// 批量删除
+						let ids = this.chooseList.map((item) => item.id);
+						this.axios
+							.post(
+								'/admin/image/delete_all',
+								{
+									ids,
+								},
+								{ token: true }
+							)
+							.then(() => {
+								this.layout.hideLoading();
+								this.$message({
+									message: '删除成功',
+									type: 'success',
+								});
+								this.__init();
+								this.chooseList = [];
+							})
+							.catch(() => {
+								this.layout.hideLoading();
 							});
-						});
-						this.imageList = list;
-						this.chooseList = [];
 					} else {
-						this.imageList.splice(obj.index, 1);
+						// 删除单个
+						this.axios
+							.delete(`/admin/image/${obj.item.id}`, {
+								token: true,
+							})
+							.then(() => {
+								this.layout.hideLoading();
+								this.__init();
+								this.$message({
+									message: '删除成功',
+									type: 'success',
+								});
+							})
+							.catch(() => {
+								this.layout.hideLoading();
+							});
 					}
-
-					this.$message({
-						message: '删除成功',
-						type: 'success',
-					});
 				})
 				.catch(() => {});
 		},
 		handleSizeChange(val) {
-			console.log(`每页 ${val} 条`);
+			this.pageSize = val;
+			this.getImageList();
 		},
 		handleCurrentChange(val) {
-			console.log(`当前页: ${val}`);
+			this.currentPage = val;
+			this.getImageList();
+		},
+		// 相册分页功能
+		changeAlbumPage(type) {
+			this.albumIndex = 0;
+			if (type === 'pre') {
+				this.albumPage--;
+			} else {
+				this.albumPage++;
+			}
+			this.__init();
 		},
 	},
 };

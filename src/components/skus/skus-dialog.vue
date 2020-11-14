@@ -12,7 +12,7 @@
 				<el-container>
 					<el-aside
 						width="200px"
-						style="position:absolute;top:0px;left:0;bottom:0px;"
+						style="position:absolute;top:0px;left:0;bottom:50px;"
 						class="bg-white border-right"
 					>
 						<!-- 侧边 | 规格卡片标题 -->
@@ -28,6 +28,20 @@
 							</li>
 						</ul>
 					</el-aside>
+					<el-footer
+						style="position: absolute;left:0;bottom:0;height:50px;width:200px;"
+						class="border d-flex align-items-center justify-content-center"
+					>
+						<el-pagination
+							:current-page="page.current"
+							:page-sizes="page.sizes"
+							:page-size="page.size"
+							:total="page.total"
+							layout="prev,next"
+							@current-change="handleCurrentChange"
+						>
+						</el-pagination>
+					</el-footer>
 					<el-container>
 						<el-header
 							style="position:absolute;top:0;left:200px;right:0;height:60px;line-height:60px;"
@@ -70,71 +84,26 @@
 </template>
 
 <script>
+import common from '@/common/mixins/common.js';
 export default {
+	mixins: [common],
 	data() {
 		return {
+			preUrl: 'skus',
+			loading: false,
 			createModel: false,
 			callback: false,
 			chooseList: [],
 			// 数据
 			skuIndex: 0,
-			skusList: [
-				{
-					name: '颜色', // 规格名称
-					type: 0, // 规格类型 0无,1颜色,2图片
-					// 规格属性列表
-					list: [
-						{
-							id: 1,
-							name: '黄色',
-							image: '',
-							color: '',
-							ischeck: false,
-						},
-						{
-							id: 2,
-							name: '红色',
-							image: '',
-							color: '',
-							ischeck: false,
-						},
-					],
-				},
-				{
-					name: '大小', // 规格名称
-					type: 0, // 规格类型 0无,1颜色,2图片
-					// 规格属性列表
-					list: [
-						{
-							id: 1,
-							name: 'S',
-							image: '',
-							color: '',
-							ischeck: false,
-						},
-						{
-							id: 2,
-							name: 'M',
-							image: '',
-							color: '',
-							ischeck: false,
-						},
-						{
-							id: 3,
-							name: 'L',
-							image: '',
-							color: '',
-							ischeck: false,
-						},
-					],
-				},
-			],
+			skusList: [],
 		};
 	},
 	computed: {
 		// 当前规格下的规格属性列表
 		skuItems() {
-			return this.skusList[this.skuIndex].list;
+			let item = this.skusList[this.skuIndex];
+			return item ? item.list : [];
 		},
 		// 是否全选
 		isChooseAll() {
@@ -142,6 +111,20 @@ export default {
 		},
 	},
 	methods: {
+		getListResult(e) {
+			this.skusList = e.list.map((item) => {
+				let list = item.default.split(',');
+				item.list = list.map((name) => {
+					return {
+						name,
+						color: '',
+						image: '',
+						ischeck: false,
+					};
+				});
+				return item;
+			});
+		},
 		// 打开弹出层
 		chooseSkus(callback) {
 			this.createModel = true;
@@ -153,6 +136,7 @@ export default {
 			if (typeof this.callback === 'function') {
 				let item = this.skusList[this.skuIndex];
 				this.callback({
+					id: item.id,
 					name: item.name,
 					type: item.type,
 					list: this.chooseList,

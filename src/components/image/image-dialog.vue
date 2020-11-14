@@ -19,14 +19,8 @@
 							class="mr-2"
 							v-model="searchForm.order"
 						>
-							<el-option
-								label="区域一"
-								value="shanghai"
-							></el-option>
-							<el-option
-								label="区域二"
-								value="beijing"
-							></el-option>
+							<el-option label="降序" value="desc"></el-option>
+							<el-option label="升序" value="asc"></el-option>
 						</el-select>
 						<el-input
 							class="mr-2"
@@ -35,11 +29,17 @@
 							placeholder="请输入相册名称"
 							v-model="searchForm.keyword"
 						></el-input>
-						<el-button type="success" size="mini">搜索</el-button>
+						<el-button
+							type="success"
+							size="mini"
+							@click="getImageList"
+							>搜索</el-button
+						>
 					</div>
 				</el-header>
 				<el-container>
 					<el-aside
+						v-loading="asideLoading"
 						width="200px"
 						style="position:absolute;top:60px;left:0;bottom:60px;"
 						class="bg-white border-right"
@@ -59,6 +59,7 @@
 					</el-aside>
 					<el-container>
 						<el-main
+							v-loading="mainLoading"
 							style="position:absolute;top:60px;left:200px;bottom:60px;right:0;"
 						>
 							<!-- 主内容 -->
@@ -150,8 +151,20 @@
 						class="h-100 d-flex align-items-center justify-content-center border-right"
 					>
 						<el-button-group>
-							<el-button size="mini">上一页</el-button>
-							<el-button size="mini">下一页</el-button>
+							<el-button
+								size="mini"
+								:disabled="albumPage === 1"
+								@click="changeAlbumPage('pre')"
+								>上一页</el-button
+							>
+							<el-button
+								size="mini"
+								@click="changeAlbumPage('next')"
+								:disabled="
+									Math.ceil(albumTotal / 10) === albumPage
+								"
+								>下一页</el-button
+							>
 						</el-button-group>
 					</div>
 					<div style="flex:1;" class="px-2">
@@ -159,10 +172,10 @@
 							@size-change="handleSizeChange"
 							@current-change="handleCurrentChange"
 							:current-page="currentPage"
-							:page-sizes="[100, 200, 300, 400]"
-							:page-size="100"
+							:page-sizes="pageSizes"
+							:page-size="pageSize"
 							layout="total, sizes, prev, pager, next, jumper"
-							:total="400"
+							:total="total"
 						>
 						</el-pagination>
 					</div>
@@ -202,21 +215,42 @@ export default {
 			},
 			albumIndex: 0,
 			albums: [],
+			albumPage: 1,
+			albumTotal: 0,
 			imageList: [],
 			chooseList: [],
 			currentPage: 1,
 			previewUrl: '',
 			previewModel: false,
+			pageSize: 10,
+			pageSizes: [10, 20, 50, 100],
+			total: 0,
+			asideLoading: false,
+			mainLoading: false,
 		};
 	},
-	created() {
-		this.__init();
+	computed: {
+		// 选中相册id
+		image_class_id() {
+			let item = this.albums[this.albumIndex];
+			if (item) return item.id;
+			return 0;
+		},
+		// 当前选中相册的图片列表url
+		getImageListUrl() {
+			let other = '';
+			if (this.searchForm.keyword !== '')
+				other = `&keyword=${this.searchForm.keyword}`;
+			return `/admin/imageclass/${this.image_class_id}/image/${this.currentPage}?limit=${this.pageSize}&order=${this.searchForm.order}${other}`;
+		},
 	},
+
 	methods: {
 		// 打开弹出层
 		chooseImage(callback) {
 			// 取消选中
 			this.unChoose();
+			this.__init();
 			this.imageModel = true;
 			this.callback = callback;
 		},
@@ -296,27 +330,52 @@ export default {
 		},
 		// 初始化页面
 		__init() {
-			for (let i = 0; i < 20; i++) {
-				this.albums.push({
-					name: '相册' + i,
-					num: Math.floor(Math.random() * 100),
-					order: 0,
+			// 获取相册列表
+			this.asideLoading = true;
+			this.axios
+				.get(`/admin/imageclass/${this.albumPage}`, {
+					token: true,
+				})
+				.then((res) => {
+					this.asideLoading = false;
+					let result = res.data.data;
+					this.albums = result.list;
+					this.albumTotal = result.totalCount;
+					console.log(res);
+					// 获取选中相册下的第一页图片列表
+					this.getImageList();
+				})
+				.catch(() => {
+					this.asideLoading = false;
 				});
-			}
-			for (let i = 0; i < 30; i++) {
-				this.imageList.push({
-					id: i,
-					url:
-						'https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1604988789449&di=f8b7b63b35aa4de72ce6374bfe8822b8&imgtype=0&src=http%3A%2F%2Fwww.aspku.com%2Fuploads%2Fallimg%2F190823%2F23244K9D-2.jpg',
-					name: '图片' + i,
-					ischeck: false,
-					checkOrder: 0,
+		},
+		// 获取对应相册下的图片列表
+		getImageList() {
+			this.mainLoading = true;
+			this.axios
+				.get(this.getImageListUrl, { token: true })
+				.then((res) => {
+					this.mainLoading = false;
+					let result2 = res.data.data;
+					this.imageList = result2.list.map((item) => {
+						return {
+							id: item.id,
+							url: item.url,
+							name: item.name,
+							ischeck: false,
+							checkOrder: 0,
+						};
+					});
+					this.total = result2.totalCount;
+				})
+				.catch(() => {
+					this.mainLoading = false;
 				});
-			}
 		},
 		// 切换相册
 		albumChange(index) {
 			this.albumIndex = index;
+			this.getImageList();
 		},
 		// 预览图片
 		previewImage(item) {
@@ -380,6 +439,16 @@ export default {
 		},
 		handleCurrentChange(val) {
 			console.log(`当前页: ${val}`);
+		},
+		// 相册分页功能
+		changeAlbumPage(type) {
+			this.albumIndex = 0;
+			if (type === 'pre') {
+				this.albumPage--;
+			} else {
+				this.albumPage++;
+			}
+			this.__init();
 		},
 	},
 };

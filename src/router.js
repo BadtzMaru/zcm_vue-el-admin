@@ -17,7 +17,9 @@ let router = new Router({
 
 // 全局前置守卫
 router.beforeEach((to, from, next) => {
-	let token = window.sessionStorage.getItem('token');
+	let token = sessionStorage.getItem('token');
+	let user = JSON.parse(sessionStorage.getItem('user'));
+
 	if (token) {
 		// 防止重复登录
 		if (to.path === '/login') {
@@ -25,7 +27,11 @@ router.beforeEach((to, from, next) => {
 			return next({ name: from.name ? from.name : 'index' });
 		}
 		if (to.name !== 'error_404') {
-			// 其他验证...
+			// 超级管理员跳过验证
+			if (user && user.super === 1) {
+				return next();
+			}
+			// 验证
 			let rules = window.sessionStorage.getItem('rules');
 			rules = rules ? JSON.parse(rules) : [];
 			let index = rules.findIndex((item) => {

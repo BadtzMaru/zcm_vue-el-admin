@@ -8,114 +8,100 @@
 			ref="buttonSearch"
 			placeholder="要搜索的商品名称"
 			@search="searchEvent"
+			:showSuperSearch="false"
 		>
-			<template #left>
-				<el-button size="mini" type="danger" @click="deleteAll"
-					>批量删除</el-button
-				>
-			</template>
-			<template #form>
-				<el-form inline ref="form" :model="form" label-width="80px">
-					<el-form-item label="评价用户" class="mb-0">
-						<el-input
-							v-model="form.username"
-							size="mini"
-							placeholder="评价用户"
-						></el-input>
-					</el-form-item>
-					<el-form-item label="评价类型" class="mb-0">
-						<el-select
-							v-model="form.type"
-							size="mini"
-							placeholder="请选择商品类型"
-						>
-							<el-option
-								label="区域一"
-								value="shanghai"
-							></el-option>
-							<el-option
-								label="区域二"
-								value="beijing"
-							></el-option>
-						</el-select>
-					</el-form-item>
-					<el-form-item label="发布时间" class="mb-0">
-						<el-date-picker
-							v-model="form.time"
-							type="daterange"
-							range-separator="至"
-							start-placeholder="开始日期"
-							end-placeholder="结束日期"
-							size="mini"
-						>
-						</el-date-picker>
-					</el-form-item>
-					<el-form-item class="mb-0">
-						<el-button type="info" size="mini" @click="searchEvent"
-							>搜索</el-button
-						>
-						<el-button size="mini" @click="clearSearch"
-							>清空筛选条件</el-button
-						>
-					</el-form-item>
-				</el-form>
-			</template>
 		</button-search>
 		<!-- 商品列表 -->
 		<el-table
 			border
 			class="mt-3 mb-3"
 			:data="tableData"
-			style="width: 100%"
-			@selection-change="handleSelectionChange"
+			style="width: 100%;"
 		>
-			<el-table-column
-				type="selection"
-				width="45"
-				align="center"
-			></el-table-column>
 			<el-table-column type="expand">
-				<template>
+				<template slot-scope="scope">
 					<div class="media">
 						<img
-							src="https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1605247649015&di=e61f30fd8b50386d78906feaefe0f438&imgtype=0&src=http%3A%2F%2Fc-ssl.duitang.com%2Fuploads%2Fitem%2F202008%2F08%2F20200808135140_THdwT.thumb.400_0.jpeg"
+							:src="scope.row.user.avatar"
 							class="mr-3 rounded-circle"
 							alt="avatar"
 							style="height:70px;width:70px;"
 						/>
 						<div class="media-body">
 							<h6 class="mt-0 d-flex">
-								用户名2
-								<small>2019-12-12 12:15:32</small>
+								{{ scope.row.user.username }}
+								<small>{{ scope.row.review_time }}</small>
 								<el-button
-									type="danger"
+									v-if="!scope.row.extra && !textareaEdit"
+									type="info"
 									size="mini"
 									class="ml-auto"
-									>删除</el-button
+									@click="textareaEdit = true"
+									>回复</el-button
 								>
 							</h6>
-							评论类容
-							<div class="media mt-3">
-								<a class="mr-3" href="#">
-									<img
-										src="https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1605247649015&di=e61f30fd8b50386d78906feaefe0f438&imgtype=0&src=http%3A%2F%2Fc-ssl.duitang.com%2Fuploads%2Fitem%2F202008%2F08%2F20200808135140_THdwT.thumb.400_0.jpeg"
-										class="mr-3 rounded-circle"
-										alt="avatar"
-										style="height:70px;width:70px;"
-									/>
-								</a>
-								<div class="media-body">
-									<h6 class="mt-0 d-flex">
-										客服一
-										<small>2019-12-12 12:15:32</small>
-										<el-button
-											type="danger"
-											size="mini"
-											class="ml-auto"
-											>删除</el-button
-										>
-									</h6>
-									客服回复内容
+							{{ scope.row.review.data }}
+							<div class="py-2">
+								<img
+									v-for="(item, index) in scope.row.review
+										.image"
+									:key="index"
+									:src="item"
+									alt="img"
+									style="max-width:100px;max-height:100px;"
+								/>
+							</div>
+							<div v-if="textareaEdit === scope.$index">
+								<el-input
+									type="textarea"
+									placeholder="请输入评价内容"
+									:row="2"
+									v-model="textarea"
+								></el-input>
+								<div class="my-2">
+									<el-button
+										type="success"
+										size="mini"
+										@click="review(scope.row.id)"
+										>回复</el-button
+									>
+									<el-button
+										type="info"
+										size="mini"
+										@click="closeTextarea"
+										>取消</el-button
+									>
+								</div>
+							</div>
+
+							<div v-if="scope.row.extra">
+								<div
+									class="media mt-3 bg-light p-2 rounded"
+									v-for="(item, index) in scope.row.extra"
+									:key="index"
+								>
+									<div class="media-body">
+										<h6 class="mt-0 d-flex">
+											客服
+											<el-button
+												v-if="
+													textareaEdit !==
+														scope.$index
+												"
+												@click="
+													openTextarea(
+														item.data,
+														scope.$index
+													)
+												"
+												type="info"
+												size="mini"
+												class="ml-auto"
+												>修改</el-button
+											>
+										</h6>
+										{{ item.data }}
+									</div>
 								</div>
 							</div>
 						</div>
@@ -132,14 +118,22 @@
 				<template slot-scope="scope">
 					<div class="media">
 						<img
-							:src="scope.row.goods.cover"
+							:src="
+								scope.row.goods_item
+									? scope.row.goods_item.cover
+									: ''
+							"
 							alt="cover"
 							class="mr-3"
 							style="width:60px;height:60px;"
 						/>
 						<div class="media-body">
 							<p class="mt-0">
-								{{ scope.row.goods.title }}
+								{{
+									scope.row.goods_item
+										? scope.row.goods_item.title
+										: ''
+								}}
 							</p>
 						</div>
 					</div>
@@ -148,11 +142,11 @@
 			<el-table-column label="评价信息" width="250">
 				<template slot-scope="scope">
 					<div class="d-flex flex-column">
-						<p>用户名: {{ scope.row.username }}</p>
+						<p>用户名: {{ scope.row.user.username }}</p>
 						<p>
 							评分:
 							<el-rate
-								v-model="scope.row.star"
+								v-model="scope.row.rating"
 								disabled
 								show-score
 								text-color="#ff9900"
@@ -162,11 +156,17 @@
 					</div>
 				</template>
 			</el-table-column>
-			<el-table-column label="评价时间" align="center" prop="create_time">
+			<el-table-column label="评价时间" align="center" prop="review_time">
 			</el-table-column>
 			<el-table-column label="是否显示" width="150" align="center">
 				<template slot-scope="scope">
-					<el-switch v-model="scope.row.status"></el-switch>
+					<el-button
+						@click="changeStatus(scope.row)"
+						:type="scope.row.status ? 'success' : 'danger'"
+						size="mini"
+						plain
+						>{{ scope.row.status ? '启用' : '禁用' }}</el-button
+					>
 				</template>
 			</el-table-column>
 		</el-table>
@@ -177,11 +177,13 @@
 		>
 			<div style="flex:1;" class="px-2">
 				<el-pagination
-					:current-page="currentPage"
-					:page-sizes="[100, 200, 300, 400]"
-					:page-size="100"
+					:current-page="page.current"
+					:page-sizes="page.sizes"
+					:page-size="page.size"
+					:total="page.total"
 					layout="total, sizes, prev, pager, next, jumper"
-					:total="400"
+					@size-change="handleSizeChange"
+					@current-change="handleCurrentChange"
 				>
 				</el-pagination>
 			</div>
@@ -191,81 +193,67 @@
 
 <script>
 import buttonSearch from '@/components/common/button-search.vue';
+import common from '@/common/mixins/common.js';
 export default {
+	inject: ['layout'],
+	mixins: [common],
 	components: { buttonSearch },
 	data() {
 		return {
-			tableData: [
-				{
-					id: 1,
-					goods: {
-						title: '商品标题',
-						cover:
-							'https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1605247649015&di=e61f30fd8b50386d78906feaefe0f438&imgtype=0&src=http%3A%2F%2Fc-ssl.duitang.com%2Fuploads%2Fitem%2F202008%2F08%2F20200808135140_THdwT.thumb.400_0.jpeg',
-					},
-					username: '用户名',
-					star: 5,
-					create_time: '2019-12-12 14:15:33',
-					status: 1,
-				},
-			],
-			currentPage: 1,
-			multipleSelection: [],
-			form: {
-				username: '',
-				type: '',
-				time: '',
-			},
+			preUrl: 'goods_comment',
+			tableData: [],
+			textarea: '',
+			textareaEdit: false,
+			title: '',
 		};
 	},
 	methods: {
-		// 清空筛选条件
-		clearSearch() {},
+		openTextarea(data, index) {
+			this.textarea = data;
+			this.textareaEdit = index;
+		},
+		review(id) {
+			if (!this.textarea) {
+				return this.$message({
+					message: '回复内容不能为空',
+					type: 'error',
+				});
+			}
+			this.layout.showLoading();
+			this.axios
+				.post(
+					`/admin/goods_comment/review/${id}`,
+					{ data: this.textareaEdit },
+					{ token: true }
+				)
+				.then(() => {
+					this.closeTextarea();
+					this.layout.hideLoading();
+					this.$message({
+						message: '回复成功',
+						type: 'success',
+					});
+					this.getList();
+				})
+				.catch(() => {
+					this.layout.hideLoading();
+				});
+		},
+		closeTextarea() {
+			this.textarea = '';
+			this.textareaEdit = false;
+		},
+		getListResult(e) {
+			this.tableData = e.list;
+		},
+		// 获取请求列表分页url
+		getListUrl() {
+			return `/admin/${this.preUrl}/${this.page.current}?limit=${this.page.size}&title=${this.title}`;
+		},
 		// 搜索事件
-		searchEvent() {},
-		// 批量删除
-		deleteAll() {
-			this.$confirm('是否要删除选中规格?', '提示', {
-				confirmButtonText: '删除',
-				cancelButtonText: '取消',
-				type: 'warning',
-			})
-				.then(() => {
-					this.multipleSelection.forEach((item) => {
-						let index = this.tableData.findIndex(
-							(v) => v.id === item.id
-						);
-						if (index !== -1) {
-							this.tableData.splice(index, 1);
-						}
-					});
-					this.multipleSelection = [];
-					this.$message({
-						message: '删除成功',
-						type: 'success',
-					});
-				})
-				.catch(() => {});
-		},
-		// 表格选中
-		handleSelectionChange(val) {
-			this.multipleSelection = val;
-		},
-		// 删除单个
-		deleteItem(scope) {
-			this.$confirm('是否要删除该规格?', '提示', {
-				confirmButtonText: '删除',
-				cancelButtonText: '取消',
-				type: 'warning',
-			})
-				.then(() => {
-					this.tableData.splice(scope.$index, 1);
-					this.$message({
-						message: '删除成功',
-						type: 'success',
-					});
-				})
-				.catch(() => {});
+		searchEvent(e) {
+			this.title = e;
+			this.getList();
 		},
 	},
 };

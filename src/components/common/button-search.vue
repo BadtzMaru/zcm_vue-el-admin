@@ -19,7 +19,10 @@
 						@click="$emit('search', keyword)"
 						>搜索</el-button
 					>
-					<el-button size="mini" @click="superSearch = true"
+					<el-button
+						size="mini"
+						@click="superSearch = true"
+						v-if="showSuperSearch"
 						>高级搜索</el-button
 					>
 				</div>
@@ -50,6 +53,10 @@ export default {
 			default: '',
 		},
 		showSearch: {
+			type: Boolean,
+			default: true,
+		},
+		showSuperSearch: {
 			type: Boolean,
 			default: true,
 		},

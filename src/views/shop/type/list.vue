@@ -33,7 +33,7 @@
 			></el-table-column>
 			<el-table-column label="属性标签" align="center" width="380">
 				<template slot-scope="scope">
-					{{ scope.row.value_list | formatValue }}
+					{{ scope.row.goods_type_values | formatValue }}
 				</template>
 			</el-table-column>
 			<el-table-column prop="order" label="排序" align="center">
@@ -63,7 +63,7 @@
 							type="danger"
 							size="mini"
 							plain
-							@click="deleteItem(scope)"
+							@click="deleteItem(scope.row)"
 							>删除</el-button
 						>
 					</el-button-group>
@@ -77,11 +77,13 @@
 		>
 			<div style="flex:1;" class="px-2">
 				<el-pagination
-					:current-page="currentPage"
-					:page-sizes="[100, 200, 300, 400]"
-					:page-size="100"
+					:current-page="page.current"
+					:page-sizes="page.sizes"
+					:page-size="page.size"
+					:total="page.total"
 					layout="total, sizes, prev, pager, next, jumper"
-					:total="400"
+					@size-change="handleSizeChange"
+					@current-change="handleCurrentChange"
 				>
 				</el-pagination>
 			</div>
@@ -119,13 +121,18 @@
 				<el-form-item label="关联规格">
 					<div class="d-flex">
 						<span
+							v-for="(item, index) in form.sku_list"
+							:key="index"
 							class="py-2 border rounded mr-3 sku_list-item"
 							style="line-height:1;min-width:80px;text-align:center;"
 						>
-							<font>颜色</font>
-							<i class="el-icon-delete"></i>
+							<font>{{ item.name }}</font>
+							<i
+								class="el-icon-delete"
+								@click="deleteFormSkuList(index)"
+							></i>
 						</span>
-						<el-button size="mini">
+						<el-button size="mini" @click="chooseSkus">
 							<i class="el-icon-plus"></i>
 						</el-button>
 					</div>
@@ -193,11 +200,11 @@
 								<el-input
 									v-if="scope.row.isedit"
 									type="textarea"
-									v-model="scope.row.value"
+									v-model="scope.row.default"
 									size="mini"
 									placeholder="一行为一个属性值,多个属性值用换行输入"
 								></el-input>
-								<span v-else>{{ scope.row.value }}</span>
+								<span v-else>{{ scope.row.default }}</span>
 							</template>
 						</el-table-column>
 						<el-table-column label="操作" width="180">
@@ -241,26 +248,15 @@
 
 <script>
 import buttonSearch from '@/components/common/button-search.vue';
+import common from '@/common/mixins/common.js';
 export default {
+	inject: ['layout', 'app'],
+	mixins: [common],
 	components: { buttonSearch },
 	data() {
 		return {
-			tableData: [
-				{
-					id: 1,
-					name: '鞋子',
-					order: 50,
-					status: 1,
-					sku_list: [
-						{ id: 1, name: '颜色' },
-						{ id: 2, name: '尺寸' },
-					],
-					value_list: [
-						{ order: 50, name: '特性', type: 'input', value: '' },
-						{ order: 50, name: '电池', type: 'radio', value: '' },
-					],
-				},
-			],
+			preUrl: 'goods_type',
+			tableData: [],
 			currentPage: 1,
 			multipleSelection: [],
 			createModel: false,
@@ -270,15 +266,7 @@ export default {
 				order: 50,
 				status: 1,
 				sku_list: [],
-				value_list: [
-					{
-						order: 50,
-						name: '属性名称',
-						type: 'input',
-						value: '属性值',
-						isedit: false,
-					},
-				],
+				value_list: [],
 			},
 			rules: {
 				name: [
@@ -297,30 +285,19 @@ export default {
 			return arr.join(',');
 		},
 	},
+	computed: {
+		// 关联规格id组成的一维数组
+		skus_id() {
+			return this.form.sku_list.map((item) => item.id);
+		},
+	},
 	methods: {
-		// 批量删除
-		deleteAll() {
-			this.$confirm('是否要删除选中规格?', '提示', {
-				confirmButtonText: '删除',
-				cancelButtonText: '取消',
-				type: 'warning',
-			})
-				.then(() => {
-					this.multipleSelection.forEach((item) => {
-						let index = this.tableData.findIndex(
-							(v) => v.id === item.id
-						);
-						if (index !== -1) {
-							this.tableData.splice(index, 1);
-						}
-					});
-					this.multipleSelection = [];
-					this.$message({
-						message: '删除成功',
-						type: 'success',
-					});
-				})
-				.catch(() => {});
+		getListResult(e) {
+			this.tableData = e.list.map((item) => {
+				item.value_list = item.goods_type_values;
+				item.sku_list = item.skus;
+				return item;
+			});
 		},
 		// 打开模态框
 		openModel(e = false) {
@@ -332,15 +309,7 @@ export default {
 					order: 50,
 					status: 1,
 					sku_list: [],
-					value_list: [
-						{
-							order: 50,
-							name: '属性名称',
-							type: 'input',
-							value: '属性值',
-							isedit: false,
-						},
-					],
+					value_list: [],
 				};
 				this.editIndex = -1;
 			} else {
@@ -353,19 +322,6 @@ export default {
 			}
 			// 打开dialog
 			this.createModel = true;
-		},
-		// 修改状态
-		changeStatus(item) {
-			// 请求服务端修改状态
-			item.status = item.status === 0 ? 1 : 0;
-			this.$message({
-				message: item.status ? '启用' : '禁用',
-				type: 'success',
-			});
-		},
-		// 表格选中
-		handleSelectionChange(val) {
-			this.multipleSelection = val;
 		},
 		// 添加类型
 		submit() {
@@ -383,7 +339,7 @@ export default {
 						result = result && false;
 						message.push('第' + no + '行,属性名称不能为空');
 					}
-					if (item.type !== 'input' && item.value === '') {
+					if (item.type !== 'input' && item.default === '') {
 						result = result && false;
 						message.push('第' + no + '行,属性值不能为空');
 					}
@@ -402,37 +358,28 @@ export default {
 					});
 				}
 				if (res) {
-					let msg = '添加';
-					if (this.editIndex === -1) {
-						this.tableData.unshift(this.form);
-					} else {
-						this.$set(this.tableData, this.editIndex, this.form);
-						msg = '修改';
+					let value_list = this.form.value_list.map((item) => {
+						let temp = '';
+						if (item.default) {
+							temp = item.default.replace(/\n/g, ',');
+						}
+						return { ...item, default: temp };
+					});
+
+					let data = {
+						...this.form,
+						value_list,
+						skus_id: this.skus_id,
+					};
+					let id = 0;
+					if (this.editIndex !== -1) {
+						id = this.tableData[this.editIndex].id;
 					}
 					// 关闭模态框
+					this.addOrEdit(data, id);
 					this.createModel = false;
-					this.$message({
-						message: msg + '成功',
-						type: 'success',
-					});
 				}
 			});
-		},
-		// 删除单个
-		deleteItem(scope) {
-			this.$confirm('是否要删除该规格?', '提示', {
-				confirmButtonText: '删除',
-				cancelButtonText: '取消',
-				type: 'warning',
-			})
-				.then(() => {
-					this.tableData.splice(scope.$index, 1);
-					this.$message({
-						message: '删除成功',
-						type: 'success',
-					});
-				})
-				.catch(() => {});
 		},
 		// 添加属性
 		addValue() {
@@ -440,7 +387,7 @@ export default {
 				order: 50,
 				name: '',
 				type: 'input',
-				value: '',
+				default: '',
 				isedit: false,
 			});
 		},
@@ -451,6 +398,19 @@ export default {
 		// 删除属性值
 		delRow(index) {
 			this.form.value_list.splice(index, 1);
+		},
+		chooseSkus() {
+			this.app.chooseSkus((e) => {
+				let index = this.form.sku_list.findIndex((item) => {
+					return item.id === e.id;
+				});
+				if (index === -1) {
+					this.form.sku_list.push(e);
+				}
+			});
+		},
+		deleteFormSkuList(index) {
+			this.form.sku_list.splice(index, 1);
 		},
 	},
 };

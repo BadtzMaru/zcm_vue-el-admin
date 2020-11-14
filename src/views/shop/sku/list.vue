@@ -32,7 +32,7 @@
 				prop="name"
 			></el-table-column>
 			<el-table-column
-				prop="value"
+				prop="default"
 				label="规格值"
 				align="center"
 				width="380"
@@ -65,7 +65,7 @@
 							type="danger"
 							size="mini"
 							plain
-							@click="deleteItem(scope)"
+							@click="deleteItem(scope.row)"
 							>删除</el-button
 						>
 					</el-button-group>
@@ -79,17 +79,23 @@
 		>
 			<div style="flex:1;" class="px-2">
 				<el-pagination
-					:current-page="currentPage"
-					:page-sizes="[100, 200, 300, 400]"
-					:page-size="100"
+					:current-page="page.current"
+					:page-sizes="page.sizes"
+					:page-size="page.size"
+					:total="page.total"
 					layout="total, sizes, prev, pager, next, jumper"
-					:total="400"
+					@size-change="handleSizeChange"
+					@current-change="handleCurrentChange"
 				>
 				</el-pagination>
 			</div>
 		</el-footer>
 		<!-- 新增/修改模态框 -->
-		<el-dialog title="添加规格" :visible.sync="createModel" top="5vh">
+		<el-dialog
+			:title="editIndex > -1 ? '修改规格' : '添加规格'"
+			:visible.sync="createModel"
+			top="5vh"
+		>
 			<!-- 表单内容 -->
 			<el-form ref="form" :model="form" :rules="rules" label-width="80px">
 				<el-form-item label="规格名称" prop="name">
@@ -120,12 +126,12 @@
 						<el-radio :label="2" border>图片</el-radio>
 					</el-radio-group>
 				</el-form-item>
-				<el-form-item label="规格值" prop="value">
+				<el-form-item label="规格值" prop="default">
 					<el-input
 						type="textarea"
 						:rows="3"
 						placeholder="一行一个规格项,多个规格项用换行来输入"
-						v-model="form.value"
+						v-model="form.default"
 					></el-input>
 				</el-form-item>
 			</el-form>
@@ -139,38 +145,15 @@
 
 <script>
 import buttonSearch from '@/components/common/button-search.vue';
+import common from '@/common/mixins/common.js';
 export default {
+	inject: ['layout'],
+	mixins: [common],
 	components: { buttonSearch },
 	data() {
 		return {
-			tableData: [
-				{
-					id: 1,
-					name: '颜色',
-					value: '棕色,蓝色',
-					order: 50,
-					status: 0,
-					type: 1,
-				},
-				{
-					id: 2,
-					name: '大小',
-					value: 'S,M,L',
-					order: 20,
-					status: 1,
-					type: 1,
-				},
-				{
-					id: 3,
-					name: '地区',
-					value: '北京,上海,福州',
-					order: 20,
-					status: 1,
-					type: 1,
-				},
-			],
-			currentPage: 1,
-			multipleSelection: [],
+			preUrl: 'skus',
+			tableData: [],
 			createModel: false,
 			editIndex: -1,
 			form: {
@@ -178,7 +161,7 @@ export default {
 				order: 50,
 				status: 1,
 				type: 0,
-				value: '',
+				default: '',
 			},
 			rules: {
 				name: [
@@ -188,7 +171,7 @@ export default {
 						trigger: 'blur',
 					},
 				],
-				value: [
+				default: [
 					{
 						required: true,
 						message: '规格值不能为空',
@@ -198,30 +181,10 @@ export default {
 			},
 		};
 	},
+
 	methods: {
-		// 批量删除
-		deleteAll() {
-			this.$confirm('是否要删除选中规格?', '提示', {
-				confirmButtonText: '删除',
-				cancelButtonText: '取消',
-				type: 'warning',
-			})
-				.then(() => {
-					this.multipleSelection.forEach((item) => {
-						let index = this.tableData.findIndex(
-							(v) => v.id === item.id
-						);
-						if (index !== -1) {
-							this.tableData.splice(index, 1);
-						}
-					});
-					this.multipleSelection = [];
-					this.$message({
-						message: '删除成功',
-						type: 'success',
-					});
-				})
-				.catch(() => {});
+		getListResult(e) {
+			this.tableData = e.list;
 		},
 		// 打开模态框
 		openModel(e = false) {
@@ -233,7 +196,7 @@ export default {
 					order: 50,
 					status: 1,
 					type: 0,
-					value: '',
+					default: '',
 				};
 				this.editIndex = -1;
 			} else {
@@ -243,62 +206,24 @@ export default {
 					order: e.row.order,
 					status: e.row.status,
 					type: e.row.type,
-					value: e.row.value.replace(/,/g, '\n'),
+					default: e.row.default.replace(/,/g, '\n'),
 				};
 				this.editIndex = e.$index;
 			}
 			// 打开dialog
 			this.createModel = true;
 		},
-		// 修改状态
-		changeStatus(item) {
-			// 请求服务端修改状态
-			item.status = item.status === 0 ? 1 : 0;
-			this.$message({
-				message: item.status ? '启用' : '禁用',
-				type: 'success',
-			});
-		},
-		// 表格选中
-		handleSelectionChange(val) {
-			this.multipleSelection = val;
-		},
 		// 添加规格
 		submit() {
 			this.$refs.form.validate((res) => {
 				if (res) {
-					let msg = '添加';
-					this.form.value = this.form.value.replace(/\n/g, ',');
-					if (this.editIndex === -1) {
-						this.tableData.unshift(this.form);
-					} else {
-						this.$set(this.tableData, this.editIndex, this.form);
-						msg = '修改';
-					}
-					// 关闭模态框
-					this.createModel = false;
-					this.$message({
-						message: msg + '成功',
-						type: 'success',
-					});
+					this.form.default = this.form.default.replace(/\n/g, ',');
+					let id = 0;
+					if (this.editIndex !== -1)
+						id = this.tableData[this.editIndex].id;
+					this.addOrEdit(this.form, id);
 				}
 			});
-		},
-		// 删除单个
-		deleteItem(scope) {
-			this.$confirm('是否要删除该规格?', '提示', {
-				confirmButtonText: '删除',
-				cancelButtonText: '取消',
-				type: 'warning',
-			})
-				.then(() => {
-					this.tableData.splice(scope.$index, 1);
-					this.$message({
-						message: '删除成功',
-						type: 'success',
-					});
-				})
-				.catch(() => {});
 		},
 	},
 };
