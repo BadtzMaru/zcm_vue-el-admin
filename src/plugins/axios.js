@@ -3,6 +3,28 @@
 import Vue from 'vue';
 import axios from 'axios';
 
+import { Message } from 'element-ui';
+
+let loading = null;
+let requestCount = 0;
+// 显示loading
+function showLoading() {
+	if (requestCount === 0) {
+		loading = Message({
+			message: '加载中...',
+			duration: 0,
+		});
+	}
+	requestCount++;
+}
+// 隐藏Loading
+function hideLoading() {
+	if (requestCount > 0) requestCount--;
+	if (loading && requestCount === 0) {
+		loading.close();
+	}
+}
+
 // Full config:  https://github.com/axios/axios#request-config
 // axios.defaults.baseURL = process.env.baseURL || process.env.apiUrl || '';
 // axios.defaults.headers.common['Authorization'] = AUTH_TOKEN;
@@ -16,26 +38,40 @@ let config = {
 
 const _axios = axios.create(config);
 
+// 添加请求拦截器
 _axios.interceptors.request.use(
-	function(config) {
-		// Do something before request is sent
+	(config) => {
+		// 添加header头的token
+		let token = window.sessionStorage.getItem('token');
+		if (config.token === true) {
+			config.headers.token = token;
+		}
+		// 显示loading
+		if (config.loading === true) showLoading();
 		return config;
 	},
-	function(error) {
-		// Do something with request error
-		return Promise.reject(error);
+	(err) => {
+		// 隐藏loading
+		hideLoading();
+		return Promise.reject(err);
 	}
 );
 
-// Add a response interceptor
+// 添加响应拦截器
 _axios.interceptors.response.use(
-	function(response) {
-		// Do something with response data
-		return response;
+	(res) => {
+		// 隐藏loading
+		hideLoading();
+		return res;
 	},
-	function(error) {
-		// Do something with response error
-		return Promise.reject(error);
+	(err) => {
+		// 隐藏loading
+		hideLoading();
+		// 全局错误提示
+		if (err.response && err.response.data && err.response.data.errorCode) {
+			Message.error(err.response.data.msg);
+		}
+		return Promise.reject(err);
 	}
 );
 

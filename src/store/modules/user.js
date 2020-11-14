@@ -5,6 +5,14 @@ export default {
 	},
 	getters: {},
 	mutations: {
+		// 初始化用户信息
+		initUser(state) {
+			let user = window.sessionStorage.getItem('user');
+			if (user) {
+				state.user = JSON.parse(user);
+				state.token = state.user.token;
+			}
+		},
 		// 登陆
 		login(state, user) {
 			// 保存登陆状态
@@ -12,7 +20,15 @@ export default {
 			state.token = user.token;
 			// 存储到本地存储
 			window.sessionStorage.setItem('user', JSON.stringify(state.user));
-			window.sessionStorage.setItem('token', JSON.stringify(state.token));
+			window.sessionStorage.setItem('token', state.token);
+		},
+		// 退出登录
+		logout(state) {
+			// 清除状态
+			state.user = {};
+			// 清除本地存储
+			state.token = false;
+			window.sessionStorage.clear();
 		},
 	},
 	actions: {},

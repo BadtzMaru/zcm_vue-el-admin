@@ -67,7 +67,9 @@
 			</el-tab-pane>
 			<el-tab-pane label="角色列表" name="second">
 				<div class="d-flex align-items-center">
-					<el-button type="primary" size="mini">添加角色</el-button>
+					<el-button type="primary" size="mini" v-auth="'添加角色'"
+						>添加角色</el-button
+					>
 				</div>
 				<el-table
 					border
@@ -132,6 +134,7 @@
 								type="success"
 								size="mini"
 								@click.stop="append(data)"
+								v-auth="'添加规则'"
 								>增加</el-button
 							>
 							<el-button

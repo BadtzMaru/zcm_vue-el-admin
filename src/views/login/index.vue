@@ -38,8 +38,9 @@
 										size="medium"
 										class="w-100"
 										@click="submit"
+										:loading="loading"
 									>
-										立即登录
+										{{ loading ? '登录中...' : '立即登录' }}
 									</el-button>
 								</el-form-item>
 							</el-form>
@@ -52,9 +53,11 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex';
 export default {
 	data() {
 		return {
+			loading: false,
 			form: { username: '', password: '' },
 			rules: {
 				username: [
@@ -74,29 +77,41 @@ export default {
 			},
 		};
 	},
+	computed: {
+		...mapGetters(['adminIndex']),
+	},
 	methods: {
 		submit() {
 			this.$refs.ruleForm.validate((e) => {
 				if (!e) return;
 				// 提交表单
+				this.loading = true;
 				this.axios
 					.post('/admin/login', this.form)
 					.then((res) => {
-						console.log(res);
-						// 1.存储到vuex 2.存储到本地存储
-						this.$store.commit('login', res.data.data);
-						// 3.成功提示
+						let data = res.data.data;
+						// 存储到vuex 存储到本地存储
+						this.$store.commit('login', data);
+						// 存储权限规则xdata
+						if (data.role && data.role.rules) {
+							window.sessionStorage.setItem(
+								'rules',
+								JSON.stringify(data.role.rules)
+							);
+						}
+						// 生成后台菜单
+						this.$store.commit('createNavBar', data.tree);
+						// 成功提示
 						this.$message({
 							message: '登陆成功',
 							type: 'success',
 						});
-						// 4.跳转
-						this.$router.push({ name: 'index' });
+						this.loading = false;
+						// 跳转
+						this.$router.push({ name: this.adminIndex });
 					})
-					.catch((err) => {
-						if (err.response.data && err.response.data.errorCode) {
-							this.$message.error(err.response.data.msg);
-						}
+					.catch(() => {
+						this.loading = false;
 					});
 			});
 		},
