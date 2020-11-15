@@ -133,7 +133,10 @@
 								@click="openDialog('role', scope.row)"
 								>修改</el-button
 							>
-							<el-button type="text" size="mini"
+							<el-button
+								type="text"
+								size="mini"
+								@click="openDrawer(scope.row)"
 								>配置权限</el-button
 							>
 							<el-button
@@ -147,51 +150,65 @@
 				</el-table>
 			</el-tab-pane>
 			<el-tab-pane label="权限管理" name="rule">
+				<div class="d-flex align-items-center">
+					<el-button
+						type="primary"
+						size="mini"
+						v-auth="'添加规则'"
+						@click="openDialog('rule')"
+						>添加规则</el-button
+					>
+				</div>
 				<el-tree
 					class="mb-3"
-					:data="data"
+					:data="ruleList"
 					:props="defaultProps"
-					@node-click="handleNodeClick"
 					default-expand-all
 					:expand-on-click-node="false"
-					:draggable="true"
-					@node-drop="nodeDrop"
 				>
-					<span class="custom-tree-node" slot-scope="{ node, data }">
+					<span class="custom-tree-node" slot-scope="{ data }">
 						<div>
-							<el-input
-								v-if="data.editStatus"
-								v-model="data.label"
-								size="mini"
-							></el-input>
-							<span v-else>{{ node.label }}</span>
+							<span
+								v-if="data.menu"
+								class="mr-2 text-muted"
+								:class="data.icon || 'el-icon-star-off'"
+							></span>
+							<small v-else class="mr-2 text-muted">{{
+								data.method
+							}}</small>
+							<span>{{ data.name }}</span>
+							<span v-if="data.menu" class="badge ml-2">{{
+								data.frontpath
+							}}</span>
+							<span v-else class="badge badge-secondary ml-2">{{
+								data.condition
+							}}</span>
 						</div>
 						<span>
 							<el-button
-								:type="data.status ? 'primary' : 'danger'"
+								@click="changeStatus(data)"
+								:type="data.status ? 'success' : 'danger'"
 								size="mini"
-								@click.stop="showOrHide(data)"
-								>{{ data.status ? '显示' : '隐藏' }}</el-button
+								plain
+								>{{ data.status ? '启用' : '禁用' }}</el-button
 							>
 							<el-button
-								type="success"
+								type="text"
 								size="mini"
-								@click.stop="append(data)"
+								@click.stop="openDialog('rule', data.id)"
 								v-auth="'添加规则'"
 								>增加</el-button
 							>
 							<el-button
-								:type="data.editStatus ? 'default' : 'warning'"
+								type="text"
 								size="mini"
-								@click.stop="edit(data)"
-								>{{
-									data.editStatus ? '完成' : '修改'
-								}}</el-button
+								@click.stop="openDialog('rule', data)"
+								>修改</el-button
 							>
 							<el-button
-								type="danger"
+								type="text"
 								size="mini"
-								@click.stop="remove(node, data)"
+								@click.stop="deleteItem(data)"
 								>删除</el-button
 							>
 						</span>
@@ -307,11 +324,120 @@
 					</el-radio-group>
 				</el-form-item>
 			</el-form>
+			<!-- 添加|修改规则 -->
+			<el-form
+				v-if="preUrl === 'rule'"
+				label-width="120px"
+				:model="form.rule"
+			>
+				<el-form-item label="上级规则">
+					<el-select
+						size="mini"
+						v-model="form.rule.rule_id"
+						placeholder="请选择上级规则"
+					>
+						<el-option label="顶级规则" :value="0"></el-option>
+						<el-option
+							v-for="(item, index) in ruleOptions"
+							:key="index"
+							:label="item | tree"
+							:value="item.id"
+						></el-option>
+					</el-select>
+				</el-form-item>
+				<el-form-item label="菜单/规则">
+					<el-radio-group v-model="form.rule.menu" size="mini">
+						<el-radio :label="1" border>菜单</el-radio>
+						<el-radio :label="0" border>规则</el-radio>
+					</el-radio-group>
+				</el-form-item>
+				<el-form-item label="名称">
+					<el-input v-model="form.rule.name"></el-input>
+				</el-form-item>
+				<el-form-item label="后端规则" v-if="!form.rule.menu">
+					<el-input
+						v-model="form.rule.condition"
+						placeholder="后端规则"
+					></el-input>
+				</el-form-item>
+				<el-form-item label="请求方式" v-if="!form.rule.menu">
+					<el-select
+						size="mini"
+						v-model="form.rule.method"
+						placeholder="请选择请求方式"
+					>
+						<el-option label="GET" value="GET"></el-option>
+						<el-option label="POST" value="POST"></el-option>
+						<el-option label="PUT" value="PUT"></el-option>
+						<el-option label="DELETE" value="DELETE"></el-option>
+					</el-select>
+				</el-form-item>
+				<el-form-item label="图标" v-if="form.rule.menu">
+					<el-input
+						v-model="form.rule.icon"
+						placeholder="图标"
+					></el-input>
+				</el-form-item>
+				<el-form-item label="前台路由别名" v-if="form.rule.menu">
+					<el-input
+						v-model="form.rule.desc"
+						placeholder="前台路由别名"
+					></el-input>
+				</el-form-item>
+				<el-form-item
+					label="前台路由路径"
+					v-if="form.rule.menu && form.rule.rule_id > 0"
+				>
+					<el-input
+						v-model="form.rule.frontpath"
+						placeholder="前台路由路径"
+					></el-input>
+				</el-form-item>
+				<el-form-item label="状态">
+					<el-radio-group v-model="form.rule.status" size="mini">
+						<el-radio :label="1" border>启用</el-radio>
+						<el-radio :label="0" border>禁用</el-radio>
+					</el-radio-group>
+				</el-form-item>
+			</el-form>
 			<div slot="footer">
 				<el-button @click="dialogVisible = false">取 消</el-button>
 				<el-button type="primary" @click="submit">确 定</el-button>
 			</div>
 		</el-dialog>
+		<el-drawer
+			title="配置权限"
+			:visible.sync="drawer"
+			:direction="direction"
+			size="40%"
+		>
+			<div style="position:absolute;top:52px;;right:0;bottom:0;left:0;">
+				<div
+					style="position:absolute;top:0;left:0;right:0;bottom:60px;overflow-y:auto;"
+				>
+					<el-tree
+						:data="ruleList"
+						show-checkbox
+						node-key="id"
+						default-expand-all
+						:default-checked-keys="checkedKeys"
+						:props="defaultProps"
+						:check-strictly="true"
+						@check="check"
+					>
+					</el-tree>
+				</div>
+				<div
+					style="height:60px;position: absolute;bottom:0;right:0;left:0;"
+					class="bg-white border d-flex align-items-center px-3"
+				>
+					<el-button @click="drawer = false">取消</el-button>
+					<el-button type="primary" @click="submitRules"
+						>确定</el-button
+					>
+				</div>
+			</div>
+		</el-drawer>
 	</div>
 </template>
 
@@ -337,68 +463,94 @@ export default {
 					desc: '',
 					status: 1,
 				},
+				rule: {
+					menu: 1,
+					rule_id: '',
+					name: '',
+					status: 1,
+					frontpath: '',
+					condition: '',
+					desc: '',
+					icon: '',
+					method: 'GET',
+					order: 50,
+				},
 			},
 			managerList: [],
 			roleList: [],
-			data: [
-				{
-					id: 1,
-					label: '一级 1',
-					status: 1,
-					editStatus: false,
-					children: [
-						{
-							id: 2,
-							label: '二级 1-1',
-							status: 1,
-							editStatus: false,
-							children: [
-								{
-									id: 3,
-									label: '三级 1-1-1',
-									status: 1,
-									editStatus: false,
-									children: [],
-								},
-							],
-						},
-					],
-				},
-				{
-					id: 4,
-					label: '一级 2',
-					status: 1,
-					editStatus: false,
-					children: [
-						{
-							id: 5,
-							label: '二级 2-1',
-							status: 1,
-							editStatus: false,
-							children: [
-								{
-									id: 6,
-									label: '三级 2-1-1',
-									status: 1,
-									editStatus: false,
-									children: [],
-								},
-							],
-						},
-					],
-				},
-			],
+			ruleList: [],
 			defaultProps: {
-				children: 'children',
-				label: 'label',
+				children: 'child',
+				label: 'name',
 			},
 			dialogVisible: false,
 			dialogType: 'manager',
 			roleOptions: [],
+			ruleOptions: [],
 			dialogId: 0,
+			drawer: false,
+			direction: 'rtl',
+			checkedKeys: [],
+			drawerId: 0,
 		};
 	},
+	filters: {
+		tree(item) {
+			if (item.level === 0) {
+				return item.name;
+			}
+			let str = '';
+			for (let i = 0; i < item.level; i++) {
+				str += i === 0 ? '|--' : '--';
+			}
+			return str + ' ' + item.name;
+		},
+	},
 	methods: {
+		// 提交配置权限
+		submitRules() {
+			this.layout.showLoading();
+			this.axios
+				.post(
+					`/admin/role/set_rules`,
+					{
+						id: this.drawerId,
+						rule_ids: this.checkedKeys,
+					},
+					{ token: true }
+				)
+				.then((res) => {
+					this.layout.hideLoading();
+					this.drawer = false;
+					this.$message({
+						message: '配置成功',
+						type: 'success',
+					});
+					this.getList();
+				})
+				.catch(() => {
+					this.layout.hideLoading();
+				});
+		},
+		check(...e) {
+			this.checkedKeys = e[1].checkedKeys;
+		},
+		// 打开抽屉
+		openDrawer(item) {
+			this.layout.showLoading();
+			this.axios
+				.get(`/admin/rule/1`, { token: true })
+				.then((res) => {
+					this.layout.hideLoading();
+					this.ruleList = res.data.data.list;
+					this.checkedKeys = item.rules.map((item) => item.id);
+					this.drawer = true;
+					this.drawerId = item.id;
+				})
+				.catch(() => {
+					this.layout.hideLoading();
+				});
+		},
 		// 提交表单
 		submit() {
 			this.addOrEdit(this.form[this.preUrl], this.dialogId);
@@ -449,6 +601,39 @@ export default {
 						};
 					}
 					break;
+				case 'rule':
+					if (!item || typeof item === 'number') {
+						this.dialogId = 0;
+						this.form.rule = {
+							menu: 1,
+							rule_id: '',
+							name: '',
+							status: 1,
+							frontpath: '',
+							condition: '',
+							desc: '',
+							icon: '',
+							method: 'GET',
+							order: 50,
+						};
+						this.form.rule.rule_id = item;
+						this.dialogId = 0;
+					} else {
+						this.dialogId = item.id;
+						this.form.rule = {
+							menu: item.menu,
+							rule_id: item.rule_id,
+							name: item.name,
+							status: item.status,
+							frontpath: item.frontpath,
+							condition: item.condition,
+							desc: item.desc,
+							icon: item.icon,
+							method: item.method,
+							order: 50,
+						};
+					}
+					break;
 				default:
 					break;
 			}
@@ -469,9 +654,8 @@ export default {
 		getListUrl() {
 			if (this.preUrl === 'manager') {
 				return `/admin/${this.preUrl}/${this.page.current}?limit=${this.page.size}&keyword=${this.keyword}`;
-			} else if (this.preUrl === 'role') {
-				return `/admin/${this.preUrl}/${this.page.current}?limit=${this.page.size}`;
 			}
+			return `/admin/${this.preUrl}/${this.page.current}?limit=${this.page.size}`;
 		},
 		getListResult(e) {
 			console.log(JSON.parse(JSON.stringify(e)));
@@ -483,50 +667,11 @@ export default {
 				case 'role':
 					this.roleList = e.list;
 					break;
+				case 'rule':
+					this.ruleList = e.list;
+					this.ruleOptions = e.rules;
+					break;
 			}
-		},
-		handleNodeClick(data) {
-			console.log(data);
-		},
-		// 显示/隐藏
-		showOrHide(data) {
-			data.status = data.status ? 0 : 1;
-		},
-		// 编辑提交
-		edit(data) {
-			data.editStatus = !data.editStatus;
-		},
-		// 删除
-		remove(node, data) {
-			this.$confirm('此操作将删除该分类,是否继续?', '提示', {
-				confirmButtonText: '确定',
-				cancelButtonText: '取消',
-				type: 'warning',
-			})
-				.then(() => {
-					let parent = node.parent;
-					let children = parent.data.children || parent.data;
-					let index = children.findIndex((v) => {
-						return v.id === data.id;
-					});
-					children.splice(index, 1);
-				})
-				.catch(() => {});
-		},
-		// 增加子分类
-		append(data) {
-			let newObj = {
-				id: 1,
-				label: '一级 1',
-				status: 1,
-				editStatus: true,
-				children: [],
-			};
-			data.children.push(newObj);
-		},
-		// 拖拽
-		nodeDrop(...options) {
-			console.log(options[0].data, options[1].data);
 		},
 		// 选择头像
 		chooseImage() {
