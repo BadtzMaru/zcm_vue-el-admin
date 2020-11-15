@@ -39,11 +39,13 @@
 			</el-table-column>
 			<el-table-column label="状态" align="center">
 				<template slot-scope="scope">
-					<el-switch
-						v-model="scope.row.status"
-						:active-value="1"
-						:inactive-value="0"
-					></el-switch>
+					<el-button
+						@click="changeStatus(scope.row)"
+						:type="scope.row.status ? 'success' : 'danger'"
+						size="mini"
+						plain
+						>{{ scope.row.status ? '启用' : '禁用' }}</el-button
+					>
 				</template>
 			</el-table-column>
 			<el-table-column label="操作" width="150">
@@ -54,7 +56,7 @@
 					<el-button
 						type="text"
 						size="mini"
-						@click="deleteItem(scope)"
+						@click="deleteItem(scope.row)"
 						>删除</el-button
 					>
 				</template>
@@ -67,11 +69,13 @@
 		>
 			<div style="flex:1;" class="px-2">
 				<el-pagination
-					:current-page="currentPage"
-					:page-sizes="[100, 200, 300, 400]"
-					:page-size="100"
+					:current-page="page.current"
+					:page-sizes="page.sizes"
+					:page-size="page.size"
+					:total="page.total"
 					layout="total, sizes, prev, pager, next, jumper"
-					:total="400"
+					@size-change="handleSizeChange"
+					@current-change="handleCurrentChange"
 				>
 				</el-pagination>
 			</div>
@@ -113,7 +117,7 @@
 					<div>
 						<small class="mr-2">累计消费满</small>
 						<el-input
-							v-model="form.consume"
+							v-model="form.max_price"
 							size="mini"
 							placeholder="累计消费"
 							style="width:35%;"
@@ -128,7 +132,7 @@
 					<div>
 						<small class="mr-2">累计次数满</small>
 						<el-input
-							v-model="form.times"
+							v-model="form.max_times"
 							size="mini"
 							placeholder="累计次数"
 							style="width:35%;"
@@ -166,35 +170,22 @@
 
 <script>
 import buttonSearch from '@/components/common/button-search.vue';
+import common from '@/common/mixins/common.js';
 export default {
-	inject: ['app'],
+	inject: ['app', 'layout'],
+	mixins: [common],
 	components: { buttonSearch },
 	data() {
 		return {
+			preUrl: 'user_level',
 			level: 0,
-			tableData: [
-				{
-					name: '普通会员',
-					consume: 100,
-					times: 10,
-					discount: 10,
-					level: 1,
-					status: 1,
-					create_time: '2020-01-25',
-				},
-			],
-			currentPage: 1,
+			tableData: [],
 			createModel: false,
 			editIndex: -1,
-			search: {
-				keyword: '',
-				group_id: 0,
-				time: '',
-			},
 			form: {
 				name: '',
-				consume: 0,
-				times: 0,
+				max_price: 0,
+				max_times: 0,
 				discount: 0,
 				level: 0,
 				status: 1,
@@ -206,17 +197,20 @@ export default {
 			let arr = [
 				{
 					name: '累计消费',
-					value: 'consume',
+					value: 'max_price',
 				},
 				{
 					name: '累计次数',
-					value: 'times',
+					value: 'max_times',
 				},
 			];
 			return arr[this.level];
 		},
 	},
 	methods: {
+		getListResult(e) {
+			this.tableData = e.list;
+		},
 		// 打开模态框
 		openModel(e = false) {
 			// 增加
@@ -224,8 +218,8 @@ export default {
 				// 初始化表单
 				this.form = {
 					name: '',
-					consume: 0,
-					times: 0,
+					max_price: 0,
+					max_times: 0,
 					discount: 0,
 					level: 0,
 					status: 1,
@@ -235,8 +229,8 @@ export default {
 				// 修改
 				this.form = {
 					name: e.row.name,
-					consume: e.row.consume,
-					times: e.row.times,
+					max_price: e.row.max_price,
+					max_times: e.row.max_times,
 					discount: e.row.discount,
 					level: e.row.level,
 					status: e.row.status,
@@ -246,55 +240,15 @@ export default {
 			// 打开dialog
 			this.createModel = true;
 		},
-		// 修改状态
-		changeStatus(item) {
-			// 请求服务端修改状态
-			item.status = item.status === 0 ? 1 : 0;
-			this.$message({
-				message: item.status ? '启用' : '禁用',
-				type: 'success',
-			});
-		},
 		// 添加规格
 		submit() {
-			let msg = '添加';
-			if (this.editIndex === -1) {
-				this.tableData.unshift(this.form);
-			} else {
-				this.$set(this.tableData, this.editIndex, this.form);
-				msg = '修改';
+			let id = 0;
+			if (this.editIndex !== -1) {
+				id = this.tableData[this.editIndex].id;
 			}
 			// 关闭模态框
+			this.addOrEdit(this.form, id);
 			this.createModel = false;
-			this.$message({
-				message: msg + '成功',
-				type: 'success',
-			});
-		},
-		// 删除单个
-		deleteItem(scope) {
-			this.$confirm('是否要删除该等级?', '提示', {
-				confirmButtonText: '删除',
-				cancelButtonText: '取消',
-				type: 'warning',
-			})
-				.then(() => {
-					this.tableData.splice(scope.$index, 1);
-					this.$message({
-						message: '删除成功',
-						type: 'success',
-					});
-				})
-				.catch(() => {});
-		},
-		// 清空筛选条件
-		clearSearch() {
-			this.search = {
-				keyword: '',
-				group_id: 0,
-				time: '',
-			};
-			this.$refs.buttonSearch.closeSuperSearch();
 		},
 		// 搜索事件
 		searchEvent(e = false) {

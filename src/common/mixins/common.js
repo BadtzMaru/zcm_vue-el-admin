@@ -163,7 +163,7 @@ export default {
 		},
 		// 删除单个
 		deleteItem(item) {
-			this.$confirm('是否要删除该规格?', '提示', {
+			this.$confirm('是否要删除?', '提示', {
 				confirmButtonText: '删除',
 				cancelButtonText: '取消',
 				type: 'warning',

@@ -18,7 +18,7 @@
 						<el-button type="warning" size="mini"
 							>导出数据</el-button
 						>
-						<el-button type="danger" size="mini"
+						<el-button type="danger" size="mini" @click="deleteAll"
 							>批量删除</el-button
 						>
 					</template>
@@ -31,26 +31,10 @@
 						>
 							<el-form-item label="订单编号" class="mb-0">
 								<el-input
-									v-model="form.code"
+									v-model="form.no"
 									size="mini"
-									placeholder="商品名称"
+									placeholder="订单编号"
 								></el-input>
-							</el-form-item>
-							<el-form-item label="订单状态" class="mb-0">
-								<el-select
-									v-model="form.type"
-									size="mini"
-									placeholder="请选择订单状态"
-								>
-									<el-option
-										label="区域一"
-										value="shanghai"
-									></el-option>
-									<el-option
-										label="区域二"
-										value="beijing"
-									></el-option>
-								</el-select>
 							</el-form-item>
 							<el-form-item label="下单时间" class="mb-0">
 								<el-date-picker
@@ -60,11 +44,12 @@
 									start-placeholde="开始日期"
 									end-placeholde="结束日期"
 									size="mini"
+									value-format="yyyy-MM-dd"
 								></el-date-picker>
 							</el-form-item>
 							<el-form-item label="收货人" class="mb-0">
 								<el-input
-									v-model="form.username"
+									v-model="form.name"
 									size="mini"
 									placeholder="收货人"
 								></el-input>
@@ -90,232 +75,347 @@
 						</el-form>
 					</template>
 				</button-search>
-				<!-- 商品列表 -->
-				<el-table
-					border
-					class="mt-3 mb-3"
-					:data="tableData[tabI].list"
-					style="width: 100%"
-					@selection-change="handleSelectionChange"
-				>
-					<el-table-column
-						type="selection"
-						width="45"
-						align="center"
-					></el-table-column>
-					<el-table-column label="商品" width="350">
-						<template slot-scope="scope">
-							<div class="d-flex">
-								<div style="flex:1;">
-									<p class="mb-1">订单编号:</p>
-									<p class="mb-1">
-										<small>123456789</small>
-									</p>
-								</div>
-								<div style="flex:1;">
-									<p class="mb-1">下单时间:</p>
-									<p class="mb-1">
-										<small>2020-02-11</small>
-									</p>
-								</div>
-							</div>
-							<div class="media">
-								<img
-									:src="scope.row.cover"
-									alt="cover"
-									class="mr-3"
-									style="width:60px;height:60px;"
-								/>
-								<div class="media-body">
-									<p class="mt-0">
-										<span
-											class="text-primary"
-											style="cursor:pointer;"
-										>
-											{{ scope.row.title }}
-										</span>
-									</p>
-								</div>
-							</div>
-						</template>
-					</el-table-column>
-					<el-table-column label="实付款" align="center" width="120">
-						<template>
-							<span>￥20</span>
-							<p>
-								<small>(含运费: ￥20)</small>
-							</p>
-						</template>
-					</el-table-column>
-					<el-table-column label="买家" align="center" width="120">
-						<template>
-							<span>用户名</span>
-							<p>
-								<small>(用户ID: 123456)</small>
-							</p>
-						</template>
-					</el-table-column>
-					<el-table-column label="支付方式" align="center">
-						<template>
-							<span class="badge badge-success">微信支付</span>
-						</template>
-					</el-table-column>
-					<el-table-column
-						prop="stock"
-						label="配送方式"
-						align="center"
-					>
-					</el-table-column>
-					<el-table-column
-						label="交易状态"
-						align="center"
-						width="170"
-					>
-						<template>
-							<div>
-								付款状态:
-								<span class="badge badge-success">已付款</span>
-							</div>
-							<div>
-								发货状态:
-								<span class="badge badge-success">待发货</span>
-							</div>
-							<div>
-								收货状态:
-								<span class="badge badge-success">已付款</span>
-							</div>
-						</template>
-					</el-table-column>
-					<el-table-column label="操作" width="150" align="center">
-						<template>
-							<el-button type="primary" size="mini" plain
-								>订单详情</el-button
-							>
-						</template>
-					</el-table-column>
-				</el-table>
-				<div style="height:60px;"></div>
-				<el-footer
-					class="border-top d-flex align-items-center px-0 position-fixed bg-white"
-					style="bottom:0;left:200px;right:0;z-index:100;"
-				>
-					<div style="flex:1;" class="px-2">
-						<el-pagination
-							:current-page="tableData[tabI].currentPage"
-							:page-sizes="[100, 200, 300, 400]"
-							:page-size="100"
-							layout="total, sizes, prev, pager, next, jumper"
-							:total="400"
-						>
-						</el-pagination>
-					</div>
-				</el-footer>
 			</el-tab-pane>
 		</el-tabs>
+		<!-- 商品列表 -->
+		<el-table
+			border
+			class="mt-3 mb-3"
+			:data="tableData"
+			style="width: 100%"
+			@selection-change="handleSelectionChange"
+		>
+			<el-table-column
+				type="selection"
+				width="45"
+				align="center"
+			></el-table-column>
+			<el-table-column label="商品" width="350">
+				<template slot-scope="scope">
+					<div class="d-flex">
+						<div style="flex:1;">
+							<p class="mb-1">订单编号:</p>
+							<p class="mb-1">
+								<small>{{ scope.row.no }}</small>
+							</p>
+						</div>
+						<div style="flex:1;">
+							<p class="mb-1">下单时间:</p>
+							<p class="mb-1">
+								<small>{{ scope.row.create_time }}</small>
+							</p>
+						</div>
+					</div>
+					<div
+						class="media border-top py-2"
+						v-for="(item, index) in scope.row.order_items"
+						:key="index"
+					>
+						<img
+							:src="item.goods_item ? item.goods_item.cover : ''"
+							alt="cover"
+							class="mr-3"
+							style="width:60px;height:60px;"
+						/>
+						<div class="media-body">
+							<p class="mt-0">
+								<span
+									class="text-primary"
+									style="cursor:pointer;"
+								>
+									{{
+										item.goods_item
+											? item.goods_item.title
+											: '暂无商品信息'
+									}}
+								</span>
+							</p>
+						</div>
+					</div>
+				</template>
+			</el-table-column>
+			<el-table-column label="实付款" align="center" width="120">
+				<template slot-scope="scope">
+					<span>￥{{ scope.row.total_price }}</span>
+					<p>
+						<small>(含运费: ￥20)</small>
+					</p>
+				</template>
+			</el-table-column>
+			<el-table-column label="买家" align="center" width="120">
+				<template slot-scope="scope">
+					<span>{{ scope.row.user.username }}</span>
+					<p>
+						<small>(用户ID: {{ scope.row.user.id }})</small>
+					</p>
+				</template>
+			</el-table-column>
+			<el-table-column label="支付方式" align="center">
+				<template slot-scope="scope">
+					<span
+						v-if="scope.row.payment_method === 'wechat'"
+						class="badge badge-success"
+						>微信支付</span
+					>
+					<span
+						v-else-if="scope.row.payment_method === 'alipay'"
+						class="badge badge-primary"
+						>支付宝支付</span
+					>
+					<span v-else class="badge badge-secondary">未支付</span>
+				</template>
+			</el-table-column>
+			<el-table-column label="配送方式" align="center">
+				<template slot-scope="scope">
+					<div v-if="scope.row.ship_data">
+						<div>
+							{{
+								scope.row.ship_data
+									? scope.row.ship_data.express_company
+									: ''
+							}}
+						</div>
+						<div>
+							{{
+								scope.row.ship_data
+									? scope.row.ship_data.express_no
+									: ''
+							}}
+						</div>
+					</div>
+					<span v-else class="badge badge-secondary">未配送</span>
+				</template>
+			</el-table-column>
+			<el-table-column label="交易状态" align="center" width="170">
+				<template slot-scope="scope">
+					<div>
+						付款状态:
+						<span
+							class="badge"
+							:class="
+								scope.row.payment_method
+									? 'badge-success'
+									: 'badge-secondary'
+							"
+							>{{
+								scope.row.payment_method ? '已付款' : '未付款'
+							}}</span
+						>
+					</div>
+					<div>
+						发货状态:
+						<span
+							class="badge"
+							:class="
+								scope.row.ship_data
+									? 'badge-success'
+									: 'badge-secondary'
+							"
+							>{{
+								scope.row.payment_method ? '已发货' : '待发货'
+							}}</span
+						>
+					</div>
+					<div>
+						收货状态:
+						<span
+							class="badge"
+							:class="
+								scope.row.ship_status === 'received'
+									? 'badge-success'
+									: 'badge-secondary'
+							"
+							>{{
+								scope.row.ship_status === 'received'
+									? '已收货'
+									: '未收获'
+							}}</span
+						>
+					</div>
+				</template>
+			</el-table-column>
+			<el-table-column label="操作" width="150" align="center">
+				<template slot-scope="scope">
+					<el-button type="text" size="mini">订单详情</el-button>
+					<el-button
+						v-if="
+							scope.row.ship_status === 'pending' &&
+								scope.row.closed === 0 &&
+								scope.row.payment_method &&
+								scope.row.refund_status === 'pending'
+						"
+						type="text"
+						size="mini"
+						@click="ship(scope.row)"
+						>订单发货</el-button
+					>
+				</template>
+			</el-table-column>
+		</el-table>
+		<div style="height:60px;"></div>
+		<el-footer
+			class="border-top d-flex align-items-center px-0 position-fixed bg-white"
+			style="bottom:0;left:200px;right:0;z-index:100;"
+		>
+			<div style="flex:1;" class="px-2">
+				<el-pagination
+					:current-page="page.current"
+					:page-sizes="page.sizes"
+					:page-size="page.size"
+					:total="page.total"
+					layout="total, sizes, prev, pager, next, jumper"
+					@size-change="handleSizeChange"
+					@current-change="handleCurrentChange"
+				>
+				</el-pagination>
+			</div>
+		</el-footer>
+		<el-dialog title="订单发货" :visible.sync="shipModal" width="30%">
+			<el-form :model="shipForm">
+				<el-form-item label="快递公司" prop="express_company">
+					<el-select
+						v-model="shipForm.express_company"
+						placeholder="请选择快递公司"
+					>
+						<el-option
+							v-for="(item, index) in express_company_options"
+							:key="index"
+							:label="item.name"
+							:value="item.name"
+						></el-option>
+					</el-select>
+				</el-form-item>
+				<el-form-item label="快递单号" prop="express_no">
+					<el-input v-model="shipForm.express_no"></el-input>
+				</el-form-item>
+			</el-form>
+			<span slot="footer" class="dialog-footer">
+				<el-button @click="shipModal = false">取 消</el-button>
+				<el-button type="primary" @click="shipSubmit">确 定</el-button>
+			</span>
+		</el-dialog>
 	</div>
 </template>
 
 <script>
 import buttonSearch from '@/components/common/button-search.vue';
+import common from '@/common/mixins/common.js';
 export default {
 	components: { buttonSearch },
+	mixins: [common],
+	inject: ['layout'],
 	data() {
 		return {
+			preUrl: 'order',
 			tabIndex: '0',
 			tabbars: [
-				{ name: '全部' },
-				{ name: '待付款' },
-				{ name: '待发货' },
-				{ name: '已发货' },
-				{ name: '已收货' },
-				{ name: '已完成' },
-				{ name: '已关闭' },
-				{ name: '退款中' },
+				{ name: '全部', key: 'all' },
+				{ name: '待付款', key: 'nopay' },
+				{ name: '待发货', key: 'noship' },
+				{ name: '待收货', key: 'shiped' },
+				{ name: '已收货', key: 'received' },
+				{ name: '已完成', key: 'finish' },
+				{ name: '已关闭', key: 'closed' },
+				{ name: '退款中', key: 'refunding' },
 			],
 			form: {
-				code: '',
-				type: '',
+				no: '',
 				time: '',
-				username: '',
+				name: '',
 				phone: '',
 			},
 			tableData: [],
-			multipleSelection: [],
+			shipModal: false,
+			shipForm: {
+				express_company: '',
+				express_no: '',
+			},
+			shipId: 0,
+			express_company_options: [],
 		};
 	},
-	created() {
-		this.__getData();
-	},
-	methods: {
-		// 上下架
-		changeStatus(item) {
-			item.status = item.status === 1 ? 0 : 1;
+	computed: {
+		tab() {
+			return this.tabbars[this.tabIndex].key;
 		},
-		// 删除当前商品
-		deleteItem(index) {
-			this.$confirm('您确定要删除当前商品吗?', '提示', {
-				confirmButtonText: '确定',
-				cancelButtonText: '取消',
-				type: 'warning',
-			})
-				.then(() => {
-					this.tableData[this.tabIndex].list.splice(index, 1);
-				})
-				.catch(() => {});
-		},
-		// 生成数据
-		__getData() {
-			for (let i = 0; i < this.tabbars.length; i++) {
-				this.tableData.push({
-					currentPage: 1,
-					list: [],
-				});
-				for (let j = 0; j < 20; j++) {
-					this.tableData[i].list.push({
-						id: j,
-						title: '荣耀 V10全网通 标配版' + i + '-' + j,
-						cover:
-							'https://ss1.bdstatic.com/70cFuXSh_Q1YnxGkpoWK1HF6hhy/it/u=180920816,2890274133&fm=26&gp=0.jpg',
-						create_time: '2019-07-17 18:34:14',
-						category: '手机',
-						type: '普通商品',
-						sale_count: 20,
-						order: 100,
-						status: 1,
-						stock: 200,
-						pprice: 1000,
-						ischeck: 1, // 0未审核,1通过,2不通过
-					});
+		getParams() {
+			let str = '';
+			for (let key in this.form) {
+				let val = this.form[key];
+				if (this.form[key]) {
+					if (Array.isArray(this.form[key])) {
+						str += `&starttime=${val[0]}&endtime=${val[1]}`;
+					} else {
+						str += `&${key}=${val}`;
+					}
 				}
 			}
+			return str;
 		},
-		// 表格选中
-		handleSelectionChange(val) {
-			this.multipleSelection = val;
+	},
+	created() {
+		this.axios
+			.get('/admin/express_company/1?limit=50', { token: true })
+			.then((res) => {
+				let data = res.data.data;
+				this.express_company_options = data.list;
+			})
+			.catch(() => {});
+	},
+	methods: {
+		getListUrl() {
+			return `/admin/${this.preUrl}/${this.page.current}?limit=${this.page.size}&tab=${this.tab}${this.getParams}`;
+		},
+		// 处理获取列表结果
+		getListResult(e) {
+			this.tableData = e.list;
 		},
 		// 加载数据
 		handleClick(tab) {
 			this.tabIndex = tab.index;
+			this.getList();
 		},
 		// 清空筛选条件
 		clearSearch() {
 			this.form = {
-				code: '',
-				type: '',
+				no: '',
 				time: '',
-				username: '',
+				name: '',
 				phone: '',
 			};
-			this.$refs.buttonSearch[this.tabIndex].closeSuperSearch();
+			this.getList();
 		},
 		// 搜索事件
 		searchEvent(e = false) {
-			// 简单搜索
-			if (typeof e === 'string') {
-				return console.log('简单搜索');
-			}
-			// 高级搜索
-			console.log('搜索事件');
+			if (typeof e === 'string') this.form.no = e;
+			this.getList();
+		},
+		ship(item) {
+			this.shipId = item.id;
+			this.shipModal = true;
+		},
+		shipSubmit() {
+			this.layout.showLoading();
+			this.axios
+				.post(`/admin/order/${this.shipId}/ship`, this.shipForm, {
+					token: true,
+				})
+				.then(() => {
+					this.$message({
+						message: '发货成功',
+						type: 'success',
+					});
+					this.getList();
+					this.layout.hideLoading();
+					this.shipModal = false;
+					this.shipForm = {
+						express_company: '',
+						express_no: '',
+					};
+				})
+				.catch(() => {
+					this.layout.hideLoading();
+				});
 		},
 	},
 };

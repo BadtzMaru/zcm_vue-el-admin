@@ -249,10 +249,10 @@ export default {
 		// 打开弹出层
 		chooseImage(callback) {
 			// 取消选中
-			this.unChoose();
 			this.__init();
 			this.imageModel = true;
 			this.callback = callback;
+			this.unChoose();
 		},
 		// 确定
 		confirm() {

@@ -134,5 +134,9 @@
 			"}).catch(()=>{});"
 		],
 		"prefix": "elconfirm"
+	},
+	"clgJSON": {
+		"body": ["console.log(JSON.parse(JSON.stringify($1)));"],
+		"prefix": "clgjson"
 	}
 }

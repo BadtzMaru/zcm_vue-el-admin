@@ -106,7 +106,6 @@
 					<el-button type="text" size="mini" @click="openModel(scope)"
 						>修改</el-button
 					>
-					<el-button type="text" size="mini">重置密码</el-button>
 					<el-button
 						type="text"
 						size="mini"
@@ -186,14 +185,15 @@
 				<el-form-item label="会员等级">
 					<el-select
 						size="mini"
-						v-model="form.level_id"
+						v-model="form.user_level_id"
 						placeholder="请选择会员等级"
 					>
 						<el-option
-							label="普通会员"
-							value="shanghai"
+							v-for="(item, index) in user_level"
+							:key="index"
+							:label="item.name"
+							:value="item.id"
 						></el-option>
-						<el-option label="黄金会员" value="beijing"></el-option>
 					</el-select>
 				</el-form-item>
 				<el-form-item label="手机" prop="phone">
@@ -211,13 +211,6 @@
 						placeholder="邮箱"
 						size="mini"
 					></el-input>
-				</el-form-item>
-				<el-form-item label="性别">
-					<el-radio-group v-model="form.sex" size="mini">
-						<el-radio :label="0" border>保密</el-radio>
-						<el-radio :label="1" border>男性</el-radio>
-						<el-radio :label="2" border>女性</el-radio>
-					</el-radio-group>
 				</el-form-item>
 				<el-form-item label="状态">
 					<el-radio-group v-model="form.status" size="mini">
@@ -257,10 +250,9 @@ export default {
 				nickname: '',
 				avatar: '',
 				status: 1,
-				level_id: 1,
+				user_level_id: 1,
 				phone: '',
 				email: '',
-				sex: 0,
 				level: null,
 			},
 			user_level: [],
@@ -268,7 +260,6 @@ export default {
 	},
 	methods: {
 		getListResult(e) {
-			console.log(e);
 			this.tableData = e.list;
 			this.user_level = e.user_level;
 		},
@@ -283,10 +274,9 @@ export default {
 					nickname: '',
 					avatar: '',
 					status: 1,
-					level_id: 1,
+					user_level_id: '',
 					phone: '',
 					email: '',
-					sex: 0,
 					level: null,
 				};
 				this.editIndex = -1;
@@ -298,10 +288,9 @@ export default {
 					nickname: e.row.nickname,
 					avatar: e.row.avatar,
 					status: e.row.status,
-					level_id: e.row.level_id,
+					user_level_id: e.row.user_level_id,
 					phone: e.row.phone,
 					email: e.row.email,
-					sex: e.row.sex,
 					level: e.row.level,
 				};
 				this.editIndex = e.$index;
@@ -309,25 +298,15 @@ export default {
 			// 打开dialog
 			this.createModel = true;
 		},
-		// 添加规格
+		// 添加会员
 		submit() {
-			let msg = '添加';
-			if (this.editIndex === -1) {
-				this.form.level = {
-					id: 1,
-					name: '普通会员',
-				};
-				this.tableData.unshift(this.form);
-			} else {
-				this.$set(this.tableData, this.editIndex, this.form);
-				msg = '修改';
+			let id = 0;
+			if (this.editIndex !== -1) {
+				id = this.tableData[this.editIndex].id;
 			}
+			this.addOrEdit(this.form, id);
 			// 关闭模态框
 			this.createModel = false;
-			this.$message({
-				message: msg + '成功',
-				type: 'success',
-			});
 		},
 		// 清空筛选条件
 		clearSearch() {
