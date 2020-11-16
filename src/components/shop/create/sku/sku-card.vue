@@ -41,7 +41,7 @@
 				icon="el-icon-bottom"
 				:disabled="total === index + 1"
 			></el-button>
-			<el-button @click="delSkuCard(index)" size="mini" type="text"
+			<el-button @click="delSkuCardEvent" size="mini" type="text"
 				>删除</el-button
 			>
 		</div>
@@ -68,7 +68,7 @@
 					type="text"
 					size="mini"
 					icon="el-icon-plus"
-					@click="addSkuValue(index)"
+					@click="addSkuValueEvent()"
 					>增加规格值</el-button
 				>
 			</div>
@@ -77,10 +77,11 @@
 </template>
 
 <script>
-import { mapMutations } from 'vuex';
+import { mapState, mapMutations } from 'vuex';
 import skuCardChildren from './sku-card-children.vue';
+let defaultValue = ['属性值', '#FFFFFF', '/favicon.ico'];
 export default {
-	inject: ['app'],
+	inject: ['app', 'layout'],
 	components: { skuCardChildren },
 	props: {
 		item: Object,
@@ -92,6 +93,11 @@ export default {
 			list: this.item.list,
 		};
 	},
+	computed: {
+		...mapState({
+			sku_card: (state) => state.goods_create.sku_card,
+		}),
+	},
 	mounted() {
 		this.$watch('item.list', (newValue) => {
 			this.list = newValue;
@@ -100,6 +106,21 @@ export default {
 			if (e.group === `skuItem${this.index}`) {
 				this.sortSkuValue({ index: this.index, value: this.list });
 			}
+			this.axios
+				.post(
+					`/admin/goods_skus_card_value/sort`,
+					{
+						sortdata: this.list.map((item, index) => {
+							return {
+								id: item.id,
+								order: index + 1,
+							};
+						}),
+					},
+					{ token: true }
+				)
+				.then(() => {})
+				.catch(() => {});
 		});
 	},
 	methods: {
@@ -110,20 +131,97 @@ export default {
 			'addSkuValue',
 			'sortSkuValue',
 		]),
+		addSkuValueEvent(value = false) {
+			this.layout.showLoading();
+			this.axios
+				.post(
+					`/admin/goods_skus_card_value`,
+					{
+						goods_skus_card_id: this.item.id,
+						name: this.item.name,
+						order: 50,
+						value:
+							typeof value === 'string'
+								? value
+								: defaultValue[this.item.type],
+					},
+					{ token: true }
+				)
+				.then((res) => {
+					this.layout.hideLoading();
+					let data = res.data.data;
+					data.text =
+						this.item.type === 0 ? data.value : defaultValue[0];
+					data.color =
+						this.item.type === 1 ? data.value : defaultValue[1];
+					data.image =
+						this.item.type === 2 ? data.value : defaultValue[2];
+					this.addSkuValue({
+						index: this.index,
+						data,
+					});
+				})
+				.catch(() => {
+					this.layout.hideLoading();
+				});
+		},
+		delSkuCardEvent() {
+			this.layout.showLoading();
+			this.axios
+				.post(
+					`/admin/goods_skus_card/${this.item.id}/delete`,
+					{},
+					{ token: true }
+				)
+				.then(() => {
+					this.layout.hideLoading();
+					this.delSkuCard(this.index);
+				})
+				.catch(() => {
+					this.layout.hideLoading();
+				});
+		},
+		updateSkuCard() {
+			this.axios
+				.post(`/admin/goods_skus_card/${this.item.id}`, this.item, {
+					token: true,
+				})
+				.then(() => {})
+				.catch(() => {});
+		},
 		vModel(key, index, value) {
 			this.vModelSkuCard({ key, index, value });
+			this.updateSkuCard();
 		},
 		// 规格卡片排序
 		sortCard(action, index) {
 			this.sortSkuCard({ action, index });
+			this.axios
+				.post(
+					`/admin/goods_skus_card/sort`,
+					{
+						sortdata: this.sku_card.map((item, index) => {
+							return {
+								id: item.id,
+								order: index + 1,
+							};
+						}),
+					},
+					{ token: true }
+				)
+				.then(() => {})
+				.catch(() => {});
 		},
 		// 选择规格
 		chooseSkus() {
 			this.app.chooseSkus((res) => {
 				this.vModel('name', this.index, res.name);
 				this.vModel('type', this.index, res.type);
-				this.vModel('list', this.index, res.list);
-				this.list = res.list;
+				// this.vModel('list', this.index, res.list);
+				// this.list = res.list;
+				res.list.forEach((item) => {
+					this.addSkuValueEvent(item.name);
+				});
 			});
 		},
 	},

@@ -37,7 +37,7 @@
 					class="text-center"
 					style="vertical-align:middle;"
 				>
-					{{ sku.name }}
+					{{ sku.value }}
 				</td>
 
 				<td

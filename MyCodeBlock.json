@@ -138,5 +138,23 @@
 	"clgJSON": {
 		"body": ["console.log(JSON.parse(JSON.stringify($1)));"],
 		"prefix": "clgjson"
+	},
+	"axiosget": {
+		"body": [
+			"this.axios",
+			"\t.get($1)",
+			"\t.then(() => {$2})",
+			"\t.catch(() => {});"
+		],
+		"prefix": "axiosget"
+	},
+	"axiospost": {
+		"body": [
+			"this.axios",
+			"\t.post($1)",
+			"\t.then(() => {$2})",
+			"\t.catch(() => {});"
+		],
+		"prefix": "axiospost"
 	}
 }

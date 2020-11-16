@@ -24,6 +24,7 @@ import 'tinymce/plugins/wordcount'; // 字数统计插件
 import 'tinymce/icons/default/icons.min.js';
 
 export default {
+	inject: ['app'],
 	components: {
 		Editor,
 	},
@@ -54,7 +55,7 @@ export default {
 				language: 'zh_CN',
 				skin_url: '/tinymce/skins/ui/oxide',
 				// skin_url: 'tinymce/skins/ui/oxide-dark', //暗色系
-				height: 300,
+				height: 500,
 				plugins: this.plugins,
 				toolbar: this.toolbar,
 				branding: false,
@@ -64,6 +65,25 @@ export default {
 				images_upload_handler: (blobInfo, success) => {
 					const img = 'data:image/jpeg;base64,' + blobInfo.base64();
 					success(img);
+				},
+				// 自定义按钮
+				setup: (editor) => {
+					editor.ui.registry.addButton('imageUpload', {
+						tooltip: '插入图片',
+						icon: 'image',
+						onAction: () => {
+							console.log('点击了');
+							this.app.chooseImage((data) => {
+								console.log(JSON.parse(JSON.stringify(data)));
+								// 插入到编辑中
+								data.forEach((item) => {
+									editor.insertContent(
+										`&nbsp;<img src="${item.url}" alt="img"/>&nbsp;`
+									);
+								});
+							}, 100);
+						},
+					});
 				},
 			},
 			myValue: this.value,

@@ -15,7 +15,10 @@
 					@search="searchEvent"
 				>
 					<template #left>
-						<el-button type="warning" size="mini"
+						<el-button
+							type="warning"
+							size="mini"
+							@click="exportModal = true"
 							>导出数据</el-button
 						>
 						<el-button type="danger" size="mini" @click="deleteAll"
@@ -294,6 +297,39 @@
 				<el-button type="primary" @click="shipSubmit">确 定</el-button>
 			</span>
 		</el-dialog>
+		<el-dialog title="导出数据" :visible.sync="exportModal" width="40%">
+			<el-form :model="exportForm">
+				<el-form-item label="订单类型" prop="type">
+					<el-select
+						v-model="exportForm.tab"
+						placeholder="请选择订单类型"
+						size="mini"
+					>
+						<el-option
+							v-for="(item, index) in tabbars"
+							:key="index"
+							:label="item.name"
+							:value="item.key"
+						></el-option>
+					</el-select>
+				</el-form-item>
+				<el-form-item label="时间范围" prop="time">
+					<el-date-picker
+						v-model="exportForm.time"
+						type="daterange"
+						range-separator="至"
+						start-placeholde="开始日期"
+						end-placeholde="结束日期"
+						size="mini"
+						value-format="yyyy-MM-dd"
+					></el-date-picker>
+				</el-form-item>
+			</el-form>
+			<span slot="footer" class="dialog-footer">
+				<el-button @click="exportModal = false">取 消</el-button>
+				<el-button type="primary" @click="exportExcel">确 定</el-button>
+			</span>
+		</el-dialog>
 	</div>
 </template>
 
@@ -332,6 +368,8 @@ export default {
 			},
 			shipId: 0,
 			express_company_options: [],
+			exportForm: { tab: '', time: [] },
+			exportModal: false,
 		};
 	},
 	computed: {
@@ -363,6 +401,47 @@ export default {
 			.catch(() => {});
 	},
 	methods: {
+		// 导出数据
+		exportExcel() {
+			if (!this.exportForm.tab) {
+				return this.$message({
+					message: '请选择订单类型',
+					type: 'warning',
+				});
+			}
+			let url = `/admin/order/excelexport?tab=${this.exportForm.tab}`;
+			let val = this.exportForm.time;
+			if (val && Array.isArray(val)) {
+				url += `&starttime=${val[0]}`;
+				url += `&endtime=${val[1]}`;
+			}
+			this.layout.showLoading();
+			this.axios
+				.post(url, {}, { token: true, responseType: 'blob' })
+				.then((res) => {
+					this.exportModal = false;
+					this.layout.hideLoading();
+					if (res.status == 200) {
+						let url = window.URL.createObjectURL(
+							new Blob([res.data])
+						);
+						let link = document.createElement('a');
+						link.style.display = 'none';
+						link.href = url;
+						let filename = new Date().getTime() + '.xlsx';
+						link.setAttribute('download', filename);
+						document.body.appendChild(link);
+						link.click();
+					}
+				})
+				.catch(() => {
+					this.layout.hideLoading();
+					this.$message({
+						type: 'error',
+						message: '下载失败',
+					});
+				});
+		},
 		getListUrl() {
 			return `/admin/${this.preUrl}/${this.page.current}?limit=${this.page.size}&tab=${this.tab}${this.getParams}`;
 		},

@@ -31,14 +31,15 @@
 			</template>
 		</div>
 		<input
+			v-if="type === 0"
 			type="text"
-			:value="item.name"
+			:value="item.text"
 			@input="inputChange"
 			class="form-control text-center border-0"
 			style="width:80px;font-size:15px;"
 		/>
 		<span
-			@click="delSkuValue({ cardIndex, valueIndex: index })"
+			@click="delSkuValueEvent"
 			class="btn btn-light p-0 position-absolute"
 			style="line-height:1;right: -10px;top:-10px;"
 		>
@@ -50,7 +51,7 @@
 <script>
 import { mapMutations } from 'vuex';
 export default {
-	inject: ['app'],
+	inject: ['app', 'layout'],
 	props: {
 		type: {
 			type: Number,
@@ -60,10 +61,51 @@ export default {
 		index: Number,
 		cardIndex: Number,
 	},
+	watch: {
+		type(newVal) {
+			let keys = ['text', 'color', 'image'];
+			let defaultValue = ['属性值', '#FFFFFF', '/favicon.ico'];
+			this.item.value = this.item[keys[newVal]]
+				? this.item[keys[newVal]]
+				: defaultValue[newVal];
+			this.updateSkuValueEvent();
+		},
+	},
 	methods: {
 		...mapMutations(['delSkuValue', 'updateSkuValue']),
+		updateSkuValueEvent() {
+			let keys = ['text', 'color', 'image'];
+			this.item.value = this.item[keys[this.type]];
+			this.axios
+				.post(
+					`/admin/goods_skus_card_value/${this.item.id}`,
+					this.item,
+					{ token: true }
+				)
+				.then(() => {})
+				.catch(() => {});
+		},
+		delSkuValueEvent() {
+			this.layout.showLoading();
+			this.axios
+				.post(
+					`/admin/goods_skus_card_value/${this.item.id}/delete`,
+					{},
+					{ token: true }
+				)
+				.then(() => {
+					this.layout.hideLoading();
+					this.delSkuValue({
+						cardIndex: this.cardIndex,
+						valueIndex: this.index,
+					});
+				})
+				.catch(() => {
+					this.layout.hideLoading();
+				});
+		},
 		inputChange(e) {
-			this.vModel('name', e.target.value);
+			this.vModel('text', e.target.value);
 		},
 		vModel(key, value) {
 			this.updateSkuValue({
@@ -72,6 +114,7 @@ export default {
 				key,
 				value,
 			});
+			this.updateSkuValueEvent();
 		},
 		// 选择图片
 		chooseImage() {
