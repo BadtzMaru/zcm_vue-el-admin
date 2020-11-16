@@ -242,7 +242,6 @@ export default {
 		},
 		// 鼠标点击事件
 		onClick(e, editor) {
-			console.log('Element clicked');
 			console.log(e);
 			console.log(editor);
 		},

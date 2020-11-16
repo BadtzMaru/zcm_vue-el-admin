@@ -72,9 +72,7 @@ export default {
 						tooltip: '插入图片',
 						icon: 'image',
 						onAction: () => {
-							console.log('点击了');
 							this.app.chooseImage((data) => {
-								console.log(JSON.parse(JSON.stringify(data)));
 								// 插入到编辑中
 								data.forEach((item) => {
 									editor.insertContent(

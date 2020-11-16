@@ -21,7 +21,6 @@ Vue.directive('auth', {
 		if (!user.super) {
 			let rules = user.ruleNames ? user.ruleNames : [];
 			let v = rules.find((item) => item === binding.value);
-			console.log(v);
 			if (!v) {
 				// 移除节点
 				el.parentNode.removeChild(el);

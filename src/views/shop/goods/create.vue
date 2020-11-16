@@ -165,7 +165,6 @@ export default {
 				.then((res) => {
 					this.layout.hideLoading();
 					let data = res.data.data;
-					console.log(JSON.parse(JSON.stringify(data)));
 					this.form = data;
 				})
 				.catch(() => {

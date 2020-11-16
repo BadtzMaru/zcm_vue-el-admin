@@ -658,7 +658,6 @@ export default {
 			return `/admin/${this.preUrl}/${this.page.current}?limit=${this.page.size}`;
 		},
 		getListResult(e) {
-			console.log(JSON.parse(JSON.stringify(e)));
 			switch (this.preUrl) {
 				case 'manager':
 					this.managerList = e.list;
