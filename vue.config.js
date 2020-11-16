@@ -7,7 +7,7 @@ module.exports = {
 		open: false, // 是否自动打开浏览器
 		proxy: {
 			'/admin': {
-				target: 'http://ceshi5.dishait.cn/admin',
+				target: 'http://shop.cwj.gold/admin',
 				ws: true,
 				changeOrigin: true,
 				pathRewrite: {
